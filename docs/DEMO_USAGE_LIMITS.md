@@ -18,7 +18,7 @@ Check `DEMO_DAILY_TOKEN_BUDGET` against the real tokens-per-day quota of the con
 
 - A message is charged to visitor, IP and global counters in **one transaction** using conditional upserts, so concurrent requests cannot exceed a limit and a refusal charges nothing. A generation that fails (model busy/unavailable) is refunded.
 - The visitor is the server-issued, httpOnly `vsid` cookie (stored only as an HMAC). Refreshing or reopening the page keeps it. Clearing cookies or using incognito mints a new visitor, but the **IP and global limits still apply**, so this does not reset the allowance.
-- The client IP is read from `X-Forwarded-For` counting `TRUSTED_PROXY_HOPS` entries from the right (entries to the left are client-supplied and ignored), then HMAC-hashed.
+- The client IP is read from `X-Forwarded-For` counting `TRUSTED_PROXY_HOPS` entries from the right (entries to the left are client-supplied and ignored), then HMAC-hashed. Behind Vercel -> Cloudflare -> Render the chain is `client, vercel-egress, cloudflare, internal`, hence `TRUSTED_PROXY_HOPS=3` on Render (verified from the logged chain shape).
 - Direct API calls need the same authentication, CSRF token and `vsid` cookie as the UI.
 - `GET /api/demo/usage` feeds the usage indicator; refusals reach the UI as a friendly message.
 
