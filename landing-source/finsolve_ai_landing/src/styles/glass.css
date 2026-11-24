@@ -1,0 +1,137 @@
+/* ============================================================
+   Liquid glass system
+   .glass      — full treatment (backdrop blur + spectral edge), for major surfaces
+   .glass-lite — no backdrop-filter, for chips/small elements (cheap)
+   Both get layered depth: top highlight, inner shadow, ambient outer shadow.
+   ============================================================ */
+
+.glass {
+  position: relative;
+  background:
+    linear-gradient(180deg, rgba(190, 205, 255, 0.075), rgba(120, 140, 220, 0.03) 45%, rgba(10, 16, 38, 0.18)),
+    var(--glass-bg);
+  backdrop-filter: blur(22px) saturate(150%);
+  -webkit-backdrop-filter: blur(22px) saturate(150%);
+  border-radius: var(--r-lg);
+  box-shadow:
+    inset 0 1px 0 var(--glass-highlight),
+    inset 0 -1px 0 rgba(6, 10, 26, 0.35),
+    var(--shadow-1);
+}
+
+/* Signature spectral hairline — gradient border revealed via mask */
+.glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: var(--spectrum-soft);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+/* Refraction highlight — soft light landing on the upper edge */
+.glass::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    radial-gradient(120% 60% at 18% -12%, rgba(190, 210, 255, 0.14), transparent 55%),
+    radial-gradient(70% 45% at 88% -8%, rgba(240, 166, 232, 0.07), transparent 60%);
+  pointer-events: none;
+}
+
+.glass > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Cheaper variant for small elements — no backdrop-filter */
+.glass-lite {
+  position: relative;
+  background: linear-gradient(180deg, rgba(185, 200, 255, 0.08), rgba(120, 140, 220, 0.035));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-md);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+/* Deep variant — console/app windows that sit above the atmosphere */
+.glass-deep {
+  background:
+    linear-gradient(180deg, rgba(16, 24, 52, 0.72), rgba(9, 14, 34, 0.78)),
+    var(--glass-bg);
+  backdrop-filter: blur(26px) saturate(140%);
+  -webkit-backdrop-filter: blur(26px) saturate(140%);
+  border-radius: var(--r-xl);
+  box-shadow:
+    inset 0 1px 0 var(--glass-highlight),
+    inset 0 0 0 1px rgba(150, 170, 255, 0.07),
+    var(--shadow-2);
+}
+
+/* Lift interaction for clickable/tappable glass */
+.glass-interactive {
+  transition:
+    transform var(--dur-med) var(--ease-out),
+    box-shadow var(--dur-med) var(--ease-out);
+}
+
+.glass-interactive:hover,
+.glass-interactive:focus-visible {
+  transform: translateY(-4px);
+  box-shadow:
+    inset 0 1px 0 var(--glass-highlight),
+    inset 0 -1px 0 rgba(6, 10, 26, 0.35),
+    0 12px 40px rgba(4, 8, 24, 0.55),
+    0 0 48px rgba(99, 102, 241, 0.16);
+}
+
+/* Status dots, pills */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--ink-2);
+  background: rgba(140, 160, 255, 0.07);
+  border: 1px solid var(--glass-border);
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--emerald);
+  box-shadow: 0 0 10px rgba(52, 211, 153, 0.8);
+}
+
+.dot--pulse {
+  animation: dot-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes dot-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+/* Divider with spectral fade */
+.hairline {
+  height: 1px;
+  border: 0;
+  background: linear-gradient(90deg, transparent, var(--glass-border-strong) 20%, var(--glass-border-strong) 80%, transparent);
+}

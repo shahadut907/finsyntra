@@ -1,0 +1,211 @@
+/* ============================================================
+   Roles — interactive role-based intelligence
+   ============================================================ */
+
+.roles {
+  display: grid;
+  gap: 18px;
+  max-width: 980px;
+  margin-inline: auto;
+}
+
+/* ---------------- Tabs ---------------- */
+
+.roles__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 999px;
+  background: rgba(140, 160, 255, 0.05);
+  border: 1px solid rgba(150, 170, 255, 0.14);
+  width: fit-content;
+  max-width: 100%;
+  margin-inline: auto;
+}
+
+.roles__tab {
+  padding: 10px 20px;
+  border-radius: 999px;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--ink-3);
+  transition:
+    color var(--dur-fast) ease,
+    background-color var(--dur-fast) ease,
+    box-shadow var(--dur-fast) ease;
+}
+
+.roles__tab:hover {
+  color: var(--ink-1);
+}
+
+.roles__tab.is-active {
+  color: #f0f4ff;
+  background: linear-gradient(120deg, rgba(79, 141, 255, 0.28), rgba(139, 122, 246, 0.28));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 4px 18px rgba(80, 110, 255, 0.25);
+}
+
+/* ---------------- Panel ---------------- */
+
+.roles__panel {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 34px;
+  padding: 34px 36px;
+  animation: roles-in 0.45s var(--ease-out) both;
+}
+
+@keyframes roles-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+.roles__panel-main {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+}
+
+.roles__panel-title {
+  letter-spacing: -0.01em;
+}
+
+.roles__panel-desc {
+  color: var(--ink-3);
+  font-size: 0.95rem;
+  line-height: 1.7;
+  max-width: 48ch;
+}
+
+.roles__ask {
+  display: grid;
+  gap: 8px;
+  padding: 16px 18px;
+  border-radius: var(--r-md);
+  background: rgba(8, 13, 32, 0.4);
+  border: 1px solid rgba(150, 170, 255, 0.12);
+}
+
+.roles__ask-label {
+  font-size: 0.62rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-4);
+}
+
+.roles__ask-text {
+  font-size: 0.98rem;
+  color: var(--ink-1);
+  font-style: italic;
+}
+
+/* Side */
+.roles__panel-side {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+}
+
+.roles__docs-label,
+.roles__scope-label {
+  font-size: 0.62rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-4);
+}
+
+.roles__docs {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.roles__docs li {
+  padding: 9px 13px;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  letter-spacing: 0.03em;
+  color: var(--ink-2);
+  background: rgba(79, 141, 255, 0.07);
+  border: 1px solid rgba(100, 140, 255, 0.16);
+  animation: roles-doc-in 0.5s var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 70ms + 120ms);
+}
+
+.roles__docs li:nth-child(1) { --i: 0; }
+.roles__docs li:nth-child(2) { --i: 1; }
+.roles__docs li:nth-child(3) { --i: 2; }
+
+@keyframes roles-doc-in {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+}
+
+.roles__scope {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+  margin-top: 6px;
+  padding-top: 16px;
+  border-top: 1px dashed rgba(150, 170, 255, 0.14);
+}
+
+.roles__scope-track {
+  height: 5px;
+  border-radius: 5px;
+  background: rgba(120, 140, 220, 0.14);
+  overflow: hidden;
+}
+
+.roles__scope-fill {
+  display: block;
+  height: 100%;
+  width: var(--w);
+  border-radius: 5px;
+  background: linear-gradient(90deg, var(--cyan), var(--violet));
+  box-shadow: 0 0 12px rgba(110, 150, 255, 0.5);
+  transition: width 0.7s var(--ease-out);
+}
+
+.roles__scope-value {
+  font-size: 0.72rem;
+  color: var(--ink-2);
+}
+
+/* ---------------- Responsive ---------------- */
+
+@media (max-width: 860px) {
+  .roles__panel {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    padding: 26px 24px;
+  }
+}
+
+@media (max-width: 560px) {
+  .roles__tabs {
+    border-radius: var(--r-lg);
+    justify-content: center;
+  }
+
+  .roles__tab {
+    padding: 9px 15px;
+    font-size: 0.8rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .roles__panel,
+  .roles__docs li {
+    animation: none !important;
+  }
+}

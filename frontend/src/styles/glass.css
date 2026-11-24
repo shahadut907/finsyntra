@@ -1,0 +1,2416 @@
+/* ============================================================
+   FinSyntra — pearl / liquid glass
+   Shared tokens + app shell, navigation, chat, menus and dialogs.
+
+   Surface levels (quietest to loudest):
+     L0  page background      static ambient lavender / blue wash
+     L1  navigation + header  frosted, one blur layer each
+     L2  workspace            messages / cards: flat translucent fills,
+                              never blurred individually; answer surfaces
+                              stay near-opaque for comfortable reading
+     L3  menus + popovers     near-opaque, blurred
+     L4  dialogs + drawers    opaque-ish, over a dimmed backdrop
+
+   Themes: navy glass is the default (a saved preference wins); [data-theme='dark'] (set on <html>
+   by hooks/useTheme) swaps only token values. Components never branch on
+   the theme.
+   ============================================================ */
+
+:root {
+    color-scheme: light;
+
+    /* Typography, radius, spacing, motion (theme independent) */
+    --fs-font-sans: 'Inter', 'Noto Sans Bengali', 'Hind Siliguri', 'Nirmala UI', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --fs-font-mono: 'Fira Code', ui-monospace, 'Cascadia Mono', Menlo, Consolas, monospace;
+    --fs-radius-sm: 8px;
+    --fs-radius: 12px;
+    --fs-radius-lg: 16px;
+    --fs-radius-xl: 22px;
+    --fs-control-h: 40px;
+    --fs-touch: 44px;
+    --fs-sidebar-w: 288px;
+    --fs-thread-w: 820px;
+    --fs-gutter: 20px;
+    --fs-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+    --fs-t-fast: 150ms;
+    --fs-t: 200ms;
+    --fs-blur: blur(22px) saturate(165%);
+    --fs-blur-strong: blur(30px) saturate(175%);
+
+    /* Background: quiet blue-gray with soft static lavender / blue washes */
+    --fs-bg: #e8ecf3;
+    --fs-ambient:
+        radial-gradient(820px 560px at 8% -6%, rgba(176, 160, 240, 0.40), transparent 70%),
+        radial-gradient(760px 560px at 100% 4%, rgba(132, 178, 240, 0.34), transparent 72%),
+        radial-gradient(700px 520px at 52% 55%, rgba(170, 176, 245, 0.18), transparent 72%),
+        radial-gradient(900px 600px at 78% 112%, rgba(140, 186, 238, 0.38), transparent 70%),
+        linear-gradient(180deg, #eef1f7 0%, #e4e9f2 100%);
+
+    /* Surfaces */
+    --fs-surface-nav: rgba(255, 255, 255, 0.52);
+    --fs-surface-header: rgba(255, 255, 255, 0.40);
+    --fs-surface-card: rgba(255, 255, 255, 0.58);
+    --fs-surface-card-hover: rgba(255, 255, 255, 0.82);
+    --fs-surface-msg: rgba(255, 255, 255, 0.78);
+    --fs-surface-user: rgba(128, 160, 230, 0.20);
+    --fs-surface-composer: rgba(255, 255, 255, 0.72);
+    --fs-surface-raised: rgba(252, 253, 255, 0.94);
+    --fs-surface-modal: rgba(250, 251, 254, 0.97);
+    --fs-surface-input: rgba(255, 255, 255, 0.66);
+    --fs-backdrop: rgba(40, 50, 72, 0.32);
+
+    /* Interaction fills */
+    --fs-fill: rgba(255, 255, 255, 0.62);
+    --fs-fill-hover: rgba(255, 255, 255, 0.92);
+    --fs-hover: rgba(30, 44, 74, 0.06);
+    --fs-hover-strong: rgba(30, 44, 74, 0.10);
+    --fs-active-nav: rgba(255, 255, 255, 0.86);
+    --fs-code-bg: rgba(30, 44, 74, 0.06);
+    --fs-pre-bg: rgba(238, 242, 249, 0.95);
+    --fs-th-bg: rgba(30, 44, 74, 0.045);
+    --fs-scrollbar: rgba(30, 44, 74, 0.26);
+    --fs-skeleton: rgba(30, 44, 74, 0.08);
+
+    /* Borders + highlights */
+    --fs-border-soft: rgba(30, 44, 74, 0.08);
+    --fs-border: rgba(30, 44, 74, 0.13);
+    --fs-border-strong: rgba(30, 44, 74, 0.24);
+    /* Text inputs need a 3:1 boundary against the page (WCAG 1.4.11) */
+    --fs-border-control: rgba(60, 76, 108, 0.52);
+    --fs-edge: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+    --fs-edge-soft: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+
+    /* Text, measured against the composited surfaces (>= 4.5:1) */
+    --fs-text: #1a2230;
+    --fs-text-2: #434f62;
+    --fs-text-3: #596579;
+
+    /* Accent: one restrained teal family */
+    --fs-accent: #0d7385;
+    --fs-accent-2: #1a8fa0;
+    --fs-accent-hover: #0a6070;
+    --fs-accent-ink: #ffffff;
+    --fs-accent-soft: rgba(13, 115, 133, 0.10);
+    --fs-accent-border: rgba(13, 115, 133, 0.34);
+    --fs-accent-text: #0a6272;
+    --fs-focus: rgba(13, 115, 133, 0.55);
+    --fs-focus-ring: 0 0 0 3px rgba(13, 115, 133, 0.20);
+
+    --fs-danger: #b3283f;
+    --fs-danger-soft: rgba(200, 50, 80, 0.10);
+    --fs-danger-border: rgba(200, 50, 80, 0.34);
+
+    /* Shadows */
+    --fs-shadow-sm: 0 1px 2px rgba(40, 56, 90, 0.08);
+    --fs-shadow-md: 0 8px 26px rgba(48, 64, 104, 0.12);
+    --fs-shadow-lg: 0 22px 56px rgba(40, 56, 96, 0.22);
+    --fs-shadow-btn: 0 1px 2px rgba(10, 70, 82, 0.28), 0 4px 12px rgba(13, 115, 133, 0.22);
+    --fs-logo-filter: brightness(0) opacity(0.82);
+
+    /* Clear-glass material for assistant answers: translucent pearl with a
+       diagonal reflection, bright edge, and a soft contact shadow. The text
+       on it is never translucent. */
+    --fs-glass-msg:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.68) 0%, rgba(255, 255, 255, 0.34) 48%, rgba(255, 255, 255, 0.50) 100%);
+    --fs-glass-user:
+        linear-gradient(135deg, rgba(140, 170, 238, 0.36) 0%, rgba(140, 170, 238, 0.18) 100%);
+    --fs-glass-border: rgba(255, 255, 255, 0.72);
+    --fs-glass-edge:
+        inset 0 1px 0 rgba(255, 255, 255, 0.95),
+        inset 1px 0 0 rgba(255, 255, 255, 0.5),
+        inset 0 -1px 0 rgba(30, 44, 74, 0.06);
+    --fs-glass-contact: 0 1px 2px rgba(40, 56, 90, 0.08), 0 14px 28px -16px rgba(48, 64, 104, 0.30);
+    --fs-glass-solid: rgba(250, 251, 254, 0.92);
+}
+
+[data-theme='dark'] {
+    color-scheme: dark;
+
+    /* Deep navy base, broad blue light at the edges, one restrained amber
+       glow low on the right. The centre (behind long answers) stays quiet. */
+    --fs-bg: #060b18;
+    --fs-ambient:
+        radial-gradient(1000px 760px at 108% -8%, rgba(36, 116, 248, 0.85), transparent 66%),
+        radial-gradient(820px 640px at -8% -6%, rgba(32, 92, 226, 0.58), transparent 68%),
+        radial-gradient(1100px 620px at 92% 112%, rgba(255, 138, 36, 0.88), transparent 62%),
+        radial-gradient(760px 520px at -6% 108%, rgba(255, 128, 40, 0.48), transparent 66%),
+        linear-gradient(180deg, #08102a 0%, #050914 100%);
+
+    --fs-surface-nav: rgba(10, 18, 40, 0.46);
+    --fs-surface-header: rgba(6, 12, 28, 0.34);
+    --fs-surface-card: rgba(140, 175, 255, 0.07);
+    --fs-surface-card-hover: rgba(140, 175, 255, 0.12);
+    --fs-surface-msg: rgba(140, 175, 255, 0.08);
+    --fs-surface-user: rgba(80, 140, 245, 0.24);
+    --fs-surface-composer: rgba(10, 18, 40, 0.50);
+    --fs-surface-raised: rgba(12, 20, 40, 0.97);
+    --fs-surface-modal: rgba(10, 17, 36, 0.98);
+    --fs-surface-input: rgba(140, 175, 255, 0.08);
+    --fs-backdrop: rgba(2, 5, 14, 0.68);
+
+    --fs-fill: rgba(150, 185, 255, 0.08);
+    --fs-fill-hover: rgba(150, 185, 255, 0.15);
+    --fs-hover: rgba(150, 185, 255, 0.09);
+    --fs-hover-strong: rgba(150, 185, 255, 0.15);
+    --fs-active-nav: rgba(120, 165, 255, 0.16);
+    --fs-code-bg: rgba(150, 185, 255, 0.14);
+    --fs-pre-bg: rgba(4, 9, 22, 0.74);
+    --fs-th-bg: rgba(150, 185, 255, 0.08);
+    --fs-scrollbar: rgba(170, 195, 255, 0.28);
+    --fs-skeleton: rgba(150, 185, 255, 0.12);
+
+    --fs-border-soft: rgba(170, 200, 255, 0.10);
+    --fs-border: rgba(170, 200, 255, 0.17);
+    --fs-border-strong: rgba(170, 200, 255, 0.30);
+    --fs-border-control: rgba(170, 200, 255, 0.46);
+    --fs-edge: inset 0 1px 0 rgba(200, 220, 255, 0.12);
+    --fs-edge-soft: inset 0 1px 0 rgba(200, 220, 255, 0.08);
+
+    --fs-text: #eef3fb;
+    --fs-text-2: #bac7dc;
+    --fs-text-3: #b4c2d8;
+
+    --fs-accent: #66c3ea;
+    --fs-accent-2: #92d6f3;
+    --fs-accent-hover: #86d2f2;
+    --fs-accent-ink: #041a2c;
+    --fs-accent-soft: rgba(102, 195, 234, 0.14);
+    --fs-accent-border: rgba(102, 195, 234, 0.40);
+    --fs-accent-text: #8ed5f4;
+    --fs-focus: rgba(102, 195, 234, 0.65);
+    --fs-focus-ring: 0 0 0 3px rgba(102, 195, 234, 0.22);
+
+    --fs-danger: #f6a0ab;
+    --fs-danger-soft: rgba(240, 108, 141, 0.16);
+    --fs-danger-border: rgba(240, 108, 141, 0.40);
+
+    --fs-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.36);
+    --fs-shadow-md: 0 8px 26px rgba(0, 0, 0, 0.40);
+    --fs-shadow-lg: 0 22px 56px rgba(0, 0, 0, 0.58);
+    --fs-shadow-btn: 0 1px 2px rgba(0, 0, 0, 0.35), 0 4px 14px rgba(102, 195, 234, 0.20);
+    --fs-logo-filter: brightness(0) invert(1);
+
+    /* Translucent tinted glass: assistant is a cool neutral, user is a
+       stronger blue so speakers stay distinct. */
+    --fs-glass-msg:
+        linear-gradient(135deg, rgba(190, 215, 255, 0.16) 0%, rgba(150, 180, 235, 0.05) 42%, rgba(190, 215, 255, 0.09) 100%),
+        linear-gradient(rgba(5, 10, 26, 0.42), rgba(5, 10, 26, 0.42));
+    --fs-glass-user:
+        linear-gradient(135deg, rgba(110, 165, 255, 0.34) 0%, rgba(90, 140, 240, 0.16) 100%),
+        linear-gradient(rgba(5, 10, 26, 0.34), rgba(5, 10, 26, 0.34));
+    --fs-glass-border: rgba(205, 225, 255, 0.26);
+    --fs-glass-edge:
+        inset 0 1px 0 rgba(215, 230, 255, 0.24),
+        inset 1px 0 0 rgba(215, 230, 255, 0.08),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.30);
+    --fs-glass-contact: 0 1px 2px rgba(0, 0, 0, 0.40), 0 16px 30px -16px rgba(0, 0, 0, 0.70);
+    --fs-glass-solid: rgba(14, 24, 48, 0.94);
+}
+
+/* No backdrop-filter support: swap every frosted fill for an opaque one so
+   text never sits on an unblurred busy background. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    :root {
+        --fs-glass-msg: linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(244, 247, 252, 0.94));
+        --fs-surface-nav: #f4f6fb;
+        --fs-surface-header: #eff2f8;
+        --fs-surface-composer: #fbfcfe;
+        --fs-surface-raised: #fbfcfe;
+        --fs-surface-modal: #fbfcfe;
+    }
+    [data-theme='dark'] {
+        --fs-glass-msg: linear-gradient(135deg, rgba(22, 36, 70, 0.97), rgba(16, 28, 56, 0.97));
+        --fs-surface-nav: #0e1730;
+        --fs-surface-header: #0b1328;
+        --fs-surface-composer: #121d3a;
+        --fs-surface-raised: #121d3a;
+        --fs-surface-modal: #0e1730;
+    }
+}
+
+/* ------------------------------------------------------------
+   App shell — explicit regions, deliberate scroll ownership
+   ------------------------------------------------------------ */
+.fs-app {
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    grid-template-columns: var(--fs-sidebar-w) minmax(0, 1fr);
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    background: var(--fs-bg);
+    color: var(--fs-text);
+    font-family: var(--fs-font-sans);
+    -webkit-font-smoothing: antialiased;
+}
+
+.fs-app::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--fs-ambient);
+    pointer-events: none;
+}
+
+.fs-app[data-collapsed='true'] {
+    --fs-sidebar-w: 72px;
+}
+
+.fs-main {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+}
+
+.fs-header {
+    /* Above the content region so menus opened from header actions are never
+       painted underneath the conversation. */
+    position: relative;
+    z-index: 30;
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 56px;
+    padding: 0 var(--fs-gutter);
+    border-bottom: 1px solid var(--fs-border-soft);
+    background: var(--fs-surface-header);
+    -webkit-backdrop-filter: var(--fs-blur);
+    backdrop-filter: var(--fs-blur);
+    box-shadow: var(--fs-edge-soft);
+}
+
+.fs-header-title {
+    flex: 1;
+    min-width: 0;
+}
+
+.fs-header-title h1 {
+    margin: 0;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    line-height: 1.4;
+    color: var(--fs-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.fs-header-title p {
+    margin: 0;
+    font-size: 0.75rem;
+    line-height: 1.3;
+    color: var(--fs-text-3);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.fs-header-actions {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.fs-content {
+    position: relative;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+}
+
+/* A page that is a single scrolling document (home, history, placeholders) */
+.fs-page-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.fs-skip-link {
+    position: absolute;
+    left: 12px;
+    top: -60px;
+    z-index: 200;
+    padding: 10px 16px;
+    border-radius: var(--fs-radius-sm);
+    background: var(--fs-accent);
+    color: var(--fs-accent-ink);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.fs-skip-link:focus {
+    top: 12px;
+}
+
+.fs-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* ------------------------------------------------------------
+   Buttons
+   ------------------------------------------------------------ */
+.fs-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: var(--fs-control-h);
+    padding: 0 14px;
+    border: 1px solid var(--fs-border);
+    border-radius: 10px;
+    background: var(--fs-fill);
+    box-shadow: var(--fs-edge-soft), var(--fs-shadow-sm);
+    color: var(--fs-text);
+    font: 500 0.875rem/1 var(--fs-font-sans);
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color var(--fs-t-fast) ease, border-color var(--fs-t-fast) ease,
+        color var(--fs-t-fast) ease, box-shadow var(--fs-t-fast) ease;
+}
+
+.fs-btn:hover:not(:disabled):not([aria-disabled='true']) {
+    background: var(--fs-fill-hover);
+    border-color: var(--fs-border-strong);
+}
+
+.fs-btn:disabled,
+.fs-btn[aria-disabled='true'] {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.fs-btn--primary {
+    border-color: transparent;
+    background: linear-gradient(180deg, var(--fs-accent-2), var(--fs-accent));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), var(--fs-shadow-btn);
+    color: var(--fs-accent-ink);
+    font-weight: 600;
+}
+
+.fs-btn--primary:hover:not(:disabled):not([aria-disabled='true']) {
+    background: linear-gradient(180deg, var(--fs-accent-2), var(--fs-accent-hover));
+    border-color: transparent;
+}
+
+.fs-btn--ghost {
+    border-color: transparent;
+    background: transparent;
+    box-shadow: none;
+    color: var(--fs-text-2);
+}
+
+.fs-btn--ghost:hover:not(:disabled):not([aria-disabled='true']) {
+    background: var(--fs-hover-strong);
+    border-color: transparent;
+    color: var(--fs-text);
+}
+
+.fs-btn--icon {
+    width: var(--fs-control-h);
+    padding: 0;
+}
+
+.fs-btn--sm {
+    width: 28px;
+    height: 28px;
+    min-height: 28px;
+    border-radius: 8px;
+}
+
+.fs-btn--block {
+    width: 100%;
+}
+
+.fs-app :focus-visible,
+.fs-dialog-root :focus-visible {
+    outline: 2px solid var(--fs-accent);
+    outline-offset: 2px;
+}
+
+/* ------------------------------------------------------------
+   Sidebar (L1)
+   ------------------------------------------------------------ */
+.fs-sidebar {
+    position: relative;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    margin: 10px 0 10px 10px;
+    border: 1px solid var(--fs-border-soft);
+    border-radius: var(--fs-radius-xl);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0) 38%),
+        var(--fs-surface-nav);
+    -webkit-backdrop-filter: var(--fs-blur);
+    backdrop-filter: var(--fs-blur);
+    box-shadow: var(--fs-edge), var(--fs-shadow-md);
+}
+
+.fs-sidebar-top {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 60px;
+    padding: 0 10px 0 16px;
+}
+
+.fs-brand {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--fs-text);
+    text-decoration: none;
+    border-radius: var(--fs-radius-sm);
+}
+
+.fs-brand img {
+    width: 28px;
+    height: 28px;
+    flex: none;
+    object-fit: contain;
+    filter: var(--fs-logo-filter);
+}
+
+.fs-brand span {
+    font-size: 1.0625rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* The only scroller inside the sidebar: short screens scroll this region
+   while brand and account stay pinned. */
+.fs-sidebar-body {
+    flex: 1;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--fs-scrollbar) transparent;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding: 2px 12px 12px;
+}
+
+.fs-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.fs-nav-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: var(--fs-control-h);
+    padding: 0 12px;
+    border: 1px solid transparent;
+    border-radius: 11px;
+    color: var(--fs-text-2);
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: background-color var(--fs-t-fast) ease, color var(--fs-t-fast) ease,
+        box-shadow var(--fs-t-fast) ease;
+}
+
+.fs-nav-item svg {
+    flex: none;
+}
+
+.fs-nav-item:hover {
+    background: var(--fs-hover);
+    color: var(--fs-text);
+}
+
+.fs-nav-item[aria-current='page'] {
+    background: var(--fs-active-nav);
+    color: var(--fs-text);
+    border-color: var(--fs-border-soft);
+    box-shadow: var(--fs-edge), var(--fs-shadow-sm);
+}
+
+.fs-nav-item[aria-current='page'] svg {
+    color: var(--fs-accent);
+}
+
+.fs-nav-label {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.fs-soon {
+    flex: none;
+    padding: 1px 7px;
+    border: 1px solid var(--fs-border);
+    border-radius: 999px;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    color: var(--fs-text-3);
+}
+
+.fs-section-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0 0 6px;
+    padding: 0 4px 0 12px;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--fs-text-3);
+}
+
+.fs-field {
+    position: relative;
+    display: block;
+}
+
+.fs-field svg {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    width: 16px;
+    height: 16px;
+    transform: translateY(-50%);
+    color: var(--fs-text-3);
+    pointer-events: none;
+}
+
+.fs-input {
+    width: 100%;
+    height: var(--fs-control-h);
+    padding: 0 12px 0 36px;
+    border: 1px solid var(--fs-border-control);
+    border-radius: 11px;
+    background: var(--fs-surface-input);
+    color: var(--fs-text);
+    font: 400 0.875rem/1 var(--fs-font-sans);
+}
+
+.fs-input::placeholder {
+    color: var(--fs-text-3);
+}
+
+.fs-input:focus {
+    outline: none;
+    border-color: var(--fs-accent-border);
+    box-shadow: var(--fs-focus-ring);
+}
+
+.fs-history {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-top: 8px;
+}
+
+.fs-history-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    width: 100%;
+    min-height: 48px;
+    padding: 8px 12px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--fs-text-2);
+    text-align: left;
+    cursor: pointer;
+    transition: background-color var(--fs-t-fast) ease, color var(--fs-t-fast) ease;
+}
+
+.fs-history-item:hover {
+    background: var(--fs-hover);
+    color: var(--fs-text);
+}
+
+.fs-history-item[aria-current='true'] {
+    background: var(--fs-active-nav);
+    border-color: var(--fs-border-soft);
+    box-shadow: var(--fs-edge), var(--fs-shadow-sm);
+    color: var(--fs-text);
+}
+
+.fs-history-title {
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.fs-history-meta {
+    font-size: 0.75rem;
+    line-height: 1.2;
+    color: var(--fs-text-3);
+}
+
+.fs-empty-note {
+    margin: 0;
+    padding: 8px 12px;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: var(--fs-text-3);
+}
+
+/* Compact "New chat" control: quiet glass, 40px hit area */
+.fs-newchat {
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    height: var(--fs-control-h);
+    padding: 0 14px 0 11px;
+    border: 1px solid var(--fs-glass-border);
+    border-radius: 12px;
+    background: var(--fs-glass-msg);
+    box-shadow: var(--fs-glass-edge), var(--fs-shadow-sm);
+    color: var(--fs-text);
+    font: 500 0.875rem/1 var(--fs-font-sans);
+    cursor: pointer;
+    transition: background-color var(--fs-t-fast) ease, border-color var(--fs-t-fast) ease,
+        box-shadow var(--fs-t-fast) ease, color var(--fs-t-fast) ease;
+}
+
+.fs-newchat svg {
+    flex: none;
+    color: var(--fs-accent-text);
+}
+
+.fs-newchat:hover {
+    border-color: var(--fs-accent-border);
+    background-color: var(--fs-accent-soft);
+    box-shadow: var(--fs-glass-edge), var(--fs-shadow-md);
+}
+
+/* Account area pinned to the sidebar bottom */
+.fs-account {
+    position: relative;
+    flex: none;
+    padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--fs-border-soft);
+}
+
+.fs-account-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 52px;
+    padding: 6px 8px;
+    border: 1px solid transparent;
+    border-radius: var(--fs-radius);
+    background: transparent;
+    color: var(--fs-text);
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.fs-account-btn:hover,
+.fs-account-btn[aria-expanded='true'] {
+    background: var(--fs-hover);
+}
+
+.fs-avatar-circle {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 999px;
+    background: linear-gradient(145deg, var(--fs-accent-2), var(--fs-accent));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), var(--fs-shadow-sm);
+    color: var(--fs-accent-ink);
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.fs-account-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.fs-account-name {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.fs-role-badge {
+    display: inline-block;
+    margin-top: 2px;
+    padding: 1px 8px;
+    border: 1px solid var(--fs-accent-border);
+    border-radius: 999px;
+    background: var(--fs-accent-soft);
+    color: var(--fs-accent-text);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    line-height: 1.5;
+}
+
+/* Collapsed rail */
+.fs-sidebar--collapsed .fs-sidebar-top {
+    justify-content: center;
+    padding: 0 8px;
+    flex-direction: column;
+    gap: 4px;
+    padding-top: 10px;
+    min-height: 0;
+}
+
+.fs-sidebar--collapsed .fs-brand {
+    flex: none;
+}
+
+.fs-sidebar--collapsed .fs-brand span,
+.fs-sidebar--collapsed .fs-nav-label,
+.fs-sidebar--collapsed .fs-soon,
+.fs-sidebar--collapsed .fs-account-text,
+.fs-sidebar--collapsed .fs-btn-label,
+.fs-sidebar--collapsed .fs-history-section {
+    display: none;
+}
+
+.fs-sidebar--collapsed .fs-sidebar-body {
+    padding: 8px;
+    align-items: center;
+    /* Tooltips extend past the rail, so the body must not clip them. The
+       rail is short enough to fit; on very short screens fall back to
+       scrolling (native aria-labels still name every control). */
+    overflow: visible;
+}
+
+@media (max-height: 519px) {
+    .fs-sidebar--collapsed .fs-sidebar-body {
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
+}
+
+.fs-sidebar--collapsed .fs-nav {
+    align-items: center;
+}
+
+.fs-sidebar--collapsed .fs-nav-item {
+    width: var(--fs-control-h);
+    padding: 0;
+    justify-content: center;
+}
+
+.fs-sidebar--collapsed .fs-btn--new {
+    width: var(--fs-control-h);
+    padding: 0;
+    justify-content: center;
+}
+
+.fs-sidebar--collapsed .fs-account {
+    padding-inline: 8px;
+    display: flex;
+    justify-content: center;
+}
+
+.fs-sidebar--collapsed .fs-account-btn {
+    width: auto;
+    padding: 6px;
+}
+
+/* Tooltips for icon-only (collapsed) controls */
+.fs-sidebar--collapsed [data-tip]::after {
+    content: attr(data-tip);
+    position: absolute;
+    left: calc(100% + 12px);
+    top: 50%;
+    z-index: 80;
+    padding: 6px 10px;
+    border: 1px solid var(--fs-border);
+    border-radius: var(--fs-radius-sm);
+    background: var(--fs-surface-raised);
+    box-shadow: var(--fs-shadow-md);
+    color: var(--fs-text);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(-50%);
+    transition: opacity 0.12s ease;
+}
+
+.fs-sidebar--collapsed [data-tip]:hover::after,
+.fs-sidebar--collapsed [data-tip]:focus-visible::after {
+    opacity: 1;
+}
+
+.fs-sidebar--collapsed [data-tip] {
+    position: relative;
+}
+
+/* ------------------------------------------------------------
+   Menus + popovers (L3)
+   ------------------------------------------------------------ */
+.fs-menu-root {
+    position: relative;
+    display: inline-flex;
+}
+
+.fs-menu-root--block {
+    display: block;
+    width: 100%;
+}
+
+.fs-menu {
+    position: absolute;
+    z-index: 90;
+    min-width: 230px;
+    padding: 6px;
+    border: 1px solid var(--fs-border);
+    border-radius: 16px;
+    background: var(--fs-surface-raised);
+    -webkit-backdrop-filter: var(--fs-blur-strong);
+    backdrop-filter: var(--fs-blur-strong);
+    box-shadow: var(--fs-shadow-lg), var(--fs-edge);
+}
+
+.fs-menu--bottom-end {
+    top: calc(100% + 8px);
+    right: 0;
+}
+
+.fs-menu--top-start {
+    bottom: calc(100% + 8px);
+    left: 0;
+}
+
+.fs-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 40px;
+    padding: 0 10px;
+    border: 0;
+    border-radius: var(--fs-radius-sm);
+    background: transparent;
+    color: var(--fs-text);
+    font: 500 0.875rem/1.2 var(--fs-font-sans);
+    text-align: left;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.fs-menu-item:hover,
+.fs-menu-item:focus-visible {
+    background: var(--fs-hover);
+    outline: none;
+}
+
+.fs-menu-item:focus-visible {
+    box-shadow: inset 0 0 0 2px var(--fs-accent);
+}
+
+.fs-menu-item[aria-disabled='true'] {
+    color: var(--fs-text-3);
+    cursor: not-allowed;
+}
+
+.fs-menu-item[aria-disabled='true']:hover {
+    background: transparent;
+}
+
+.fs-menu-item--danger {
+    color: var(--fs-danger);
+}
+
+.fs-menu-heading {
+    padding: 6px 10px 4px;
+    color: var(--fs-text-3);
+    font: 600 0.6875rem/1.2 var(--fs-font-sans);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+@media (max-width: 640px) {
+    .fs-menu--bottom-end {
+        max-width: calc(100vw - 24px);
+    }
+}
+
+.fs-menu-sep {
+    height: 1px;
+    margin: 6px 4px;
+    background: var(--fs-border-soft);
+}
+
+.fs-menu-hint {
+    margin-left: auto;
+    font-size: 0.6875rem;
+    color: var(--fs-text-3);
+}
+
+/* ------------------------------------------------------------
+   Mobile navigation drawer (L4)
+   ------------------------------------------------------------ */
+.fs-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    background: var(--fs-backdrop);
+    animation: fs-fade 0.15s ease-out;
+}
+
+.fs-sidebar--drawer {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 101;
+    width: min(320px, 86vw);
+    height: auto;
+    margin: 0;
+    border-radius: 0 var(--fs-radius-xl) var(--fs-radius-xl) 0;
+    background: var(--fs-surface-modal);
+    box-shadow: var(--fs-shadow-lg);
+    animation: fs-slide-in 0.18s ease-out;
+}
+
+@keyframes fs-fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes fs-slide-in {
+    from { transform: translateX(-16px); opacity: 0; }
+    to { transform: none; opacity: 1; }
+}
+
+/* ------------------------------------------------------------
+   Chat workspace (L2)
+   ------------------------------------------------------------ */
+.fs-chat {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+}
+
+.fs-scroll-wrap {
+    position: relative;
+    flex: 1;
+    display: flex;
+    min-height: 0;
+}
+
+.fs-scroll {
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 24px var(--fs-gutter) 20px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--fs-scrollbar) transparent;
+}
+
+.fs-thread {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    width: 100%;
+    max-width: var(--fs-thread-w);
+    min-width: 0;
+    margin: 0 auto;
+}
+
+.fs-msg {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    min-width: 0;
+    animation: fs-fade 0.18s ease-out;
+}
+
+.fs-msg--user {
+    flex-direction: row-reverse;
+}
+
+.fs-avatar {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    margin-top: 2px;
+    border-radius: 10px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.fs-avatar--assistant {
+    width: 34px;
+    height: 34px;
+    border: 1px solid var(--fs-glass-border);
+    border-radius: 12px;
+    background: var(--fs-glass-msg);
+    box-shadow: var(--fs-glass-edge), var(--fs-shadow-sm);
+}
+
+.fs-avatar--assistant img {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+    filter: var(--fs-logo-filter);
+}
+
+.fs-avatar--user {
+    background: var(--fs-fill-hover);
+    box-shadow: var(--fs-edge), var(--fs-shadow-sm);
+    border: 1px solid var(--fs-border-soft);
+    color: var(--fs-text);
+}
+
+.fs-msg-body {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+    max-width: calc(100% - 42px);
+}
+
+.fs-msg--assistant .fs-msg-body {
+    flex: 1;
+}
+
+.fs-msg--user .fs-msg-body {
+    align-items: flex-end;
+    max-width: min(80%, 560px);
+}
+
+/* Message surface: never transforms, never resizes on hover. Only the
+   border color is allowed to react. */
+.fs-bubble {
+    min-width: 0;
+    max-width: 100%;
+    padding: 12px 16px;
+    border: 1px solid var(--fs-border-soft);
+    border-radius: 14px;
+    background: var(--fs-glass-msg), var(--fs-glass-solid);
+    background-blend-mode: normal;
+    color: var(--fs-text);
+    font-size: 0.9375rem;
+    line-height: 1.7;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    box-shadow: var(--fs-glass-edge), var(--fs-glass-contact);
+    transition: border-color var(--fs-t-fast) ease;
+}
+
+.fs-msg--assistant .fs-bubble {
+    padding: 14px 18px;
+    border-color: var(--fs-glass-border);
+    border-radius: 18px;
+    border-top-left-radius: 8px;
+    /* Translucent surface only: the layers below the text are see-through,
+       the text itself stays fully opaque. */
+    background: var(--fs-glass-msg);
+}
+
+/* One blur per surface, and only for the newest few answers, so long
+   conversations stay cheap; older answers read the same on the smooth
+   static background. */
+.fs-msg--assistant:nth-last-child(-n + 3) .fs-bubble {
+    -webkit-backdrop-filter: blur(16px) saturate(160%);
+    backdrop-filter: blur(16px) saturate(160%);
+}
+
+.fs-msg--assistant .fs-bubble:hover {
+    border-color: var(--fs-border);
+}
+
+.fs-msg--user .fs-bubble {
+    border-color: var(--fs-border);
+    border-radius: 18px;
+    border-top-right-radius: 8px;
+    background: var(--fs-glass-user);
+    white-space: pre-wrap;
+}
+
+.fs-bubble--error {
+    border-color: var(--fs-danger-border);
+}
+
+.fs-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 10px;
+    padding: 0 4px;
+    font-size: 0.75rem;
+    line-height: 1.4;
+    color: var(--fs-text-3);
+}
+
+.fs-meta-live {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--fs-accent-text);
+}
+
+.fs-dots {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.fs-dots i {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: currentColor;
+    animation: fs-pulse 1.1s ease-in-out infinite;
+}
+
+.fs-dots i:nth-child(2) { animation-delay: 0.15s; }
+.fs-dots i:nth-child(3) { animation-delay: 0.30s; }
+
+@keyframes fs-pulse {
+    0%, 80%, 100% { opacity: 0.25; }
+    40% { opacity: 1; }
+}
+
+/* Citations */
+.fs-sources {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid var(--fs-border-soft);
+}
+
+.fs-sources-label {
+    margin: 0 0 8px;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--fs-text-3);
+}
+
+.fs-sources-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.fs-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    max-width: 100%;
+    min-height: 28px;
+    padding: 0 10px;
+    border: 1px solid var(--fs-border);
+    border-radius: 9px;
+    background: var(--fs-fill);
+    box-shadow: var(--fs-edge-soft);
+    color: var(--fs-text-2);
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.fs-chip svg {
+    flex: none;
+}
+
+/* Citation chips open the source viewer; hover only shifts border color. */
+.fs-chip--button {
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.fs-chip--button:hover {
+    border-color: var(--fs-accent-border);
+}
+
+/* Compound selector: .fs-dialog (declared later) would otherwise win. */
+.fs-dialog.fs-dialog--source {
+    max-width: 640px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.fs-source-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.fs-source-title {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    overflow: hidden;
+    font-size: 1rem;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.fs-source-meta {
+    margin: 0;
+    color: var(--fs-text-3);
+    font-size: 0.8125rem;
+}
+
+.fs-source-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow-y: auto;
+}
+
+.fs-source-passage {
+    margin: 0;
+    padding: 10px 12px;
+    border: 1px solid var(--fs-border);
+    border-radius: 10px;
+    background: var(--fs-fill);
+    color: var(--fs-text-2);
+    font-size: 0.875rem;
+    line-height: 1.55;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.fs-chip span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Markdown content */
+.fs-md > :first-child { margin-top: 0; }
+.fs-md > :last-child { margin-bottom: 0; }
+
+.fs-md p {
+    margin: 0 0 0.75em;
+}
+
+.fs-md h1,
+.fs-md h2,
+.fs-md h3,
+.fs-md h4 {
+    margin: 1.1em 0 0.45em;
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--fs-text);
+}
+
+.fs-md h1 { font-size: 1.1875rem; }
+.fs-md h2 { font-size: 1.0625rem; }
+
+.fs-md ul,
+.fs-md ol {
+    margin: 0 0 0.75em;
+    padding-left: 1.5em;
+}
+
+.fs-md ul { list-style: disc; }
+.fs-md ol { list-style: decimal; }
+.fs-md ul ul { list-style: circle; }
+
+.fs-md li {
+    margin: 0.3em 0;
+    padding-left: 0.2em;
+}
+
+.fs-md li::marker {
+    color: var(--fs-text-3);
+}
+
+.fs-md li > ul,
+.fs-md li > ol {
+    margin: 0.3em 0 0.3em;
+}
+
+.fs-md strong {
+    font-weight: 600;
+}
+
+.fs-md a {
+    color: var(--fs-accent-text);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    overflow-wrap: anywhere;
+}
+
+.fs-md a:hover {
+    color: var(--fs-accent-hover);
+}
+
+.fs-md code {
+    padding: 1px 6px;
+    border-radius: 6px;
+    background: var(--fs-code-bg);
+    font-family: var(--fs-font-mono);
+    font-size: 0.875em;
+}
+
+.fs-md pre {
+    max-width: 100%;
+    margin: 0.75em 0;
+    padding: 12px 14px;
+    overflow-x: auto;
+    border: 1px solid var(--fs-border-soft);
+    border-radius: var(--fs-radius);
+    background: var(--fs-pre-bg);
+    font-size: 0.8125rem;
+    line-height: 1.6;
+    white-space: pre;
+    tab-size: 2;
+}
+
+.fs-md pre code {
+    padding: 0;
+    background: none;
+    font-size: inherit;
+    overflow-wrap: normal;
+    word-break: normal;
+}
+
+.fs-md blockquote {
+    margin: 0.75em 0;
+    padding: 2px 0 2px 14px;
+    border-left: 3px solid var(--fs-accent-border);
+    color: var(--fs-text-2);
+}
+
+.fs-md-table {
+    max-width: 100%;
+    margin: 0.75em 0;
+    overflow-x: auto;
+    border: 1px solid var(--fs-border-soft);
+    border-radius: var(--fs-radius);
+    background: var(--fs-pre-bg);
+}
+
+.fs-md table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+
+.fs-md th,
+.fs-md td {
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--fs-border-soft);
+    text-align: left;
+    vertical-align: top;
+    overflow-wrap: normal;
+}
+
+.fs-md tr:last-child td {
+    border-bottom: 0;
+}
+
+.fs-md th {
+    background: var(--fs-th-bg);
+    color: var(--fs-text-2);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* Jump-to-latest */
+.fs-jump {
+    position: absolute;
+    left: 50%;
+    bottom: 12px;
+    z-index: 5;
+    transform: translateX(-50%);
+    box-shadow: var(--fs-shadow-md);
+    background: var(--fs-surface-raised);
+}
+
+/* Composer (in normal flow, below the scroller) */
+.fs-composer-wrap {
+    flex: none;
+    padding: 4px var(--fs-gutter) calc(14px + env(safe-area-inset-bottom));
+}
+
+.fs-composer-inner {
+    max-width: var(--fs-thread-w);
+    margin: 0 auto;
+}
+
+.fs-composer {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    padding: 7px 7px 7px 18px;
+    border: 1px solid var(--fs-border-control);
+    border-radius: 24px;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0) 60%),
+        var(--fs-surface-composer);
+    -webkit-backdrop-filter: var(--fs-blur-strong);
+    backdrop-filter: var(--fs-blur-strong);
+    box-shadow: var(--fs-shadow-lg), var(--fs-edge);
+    transition: border-color var(--fs-t) ease, box-shadow var(--fs-t) ease;
+}
+
+.fs-composer:focus-within {
+    border-color: var(--fs-accent);
+    box-shadow: var(--fs-shadow-lg), var(--fs-edge), var(--fs-focus-ring);
+}
+
+/* The container shows focus; the bare textarea must not add a second ring. */
+.fs-app .fs-composer textarea:focus-visible {
+    outline: none;
+}
+
+/* Composer layout: main row (text, mic, send) + optional tools row */
+.fs-composer {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 2px;
+}
+
+.fs-composer-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    min-width: 0;
+}
+
+.fs-composer-tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin: 2px 0 0 -8px;
+    padding: 6px 0 1px;
+    border-top: 1px solid var(--fs-border-soft);
+    min-width: 0;
+}
+
+.fs-tool {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 28px;
+    padding: 0 8px 0 11px;
+    border: 1px solid var(--fs-border-soft);
+    border-radius: 999px;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.015)),
+        var(--fs-fill);
+    box-shadow: var(--fs-edge-soft);
+    color: var(--fs-text);
+    font: 500 0.78125rem/1 var(--fs-font-sans);
+    letter-spacing: 0.005em;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color var(--fs-t-fast) ease, border-color var(--fs-t-fast) ease,
+        color var(--fs-t-fast) ease, box-shadow var(--fs-t-fast) ease;
+}
+
+.fs-tool:hover:not(:disabled) {
+    border-color: var(--fs-border);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0.03)),
+        var(--fs-fill-hover);
+}
+
+.fs-tool[aria-expanded='true'] {
+    border-color: var(--fs-accent-border);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)),
+        var(--fs-accent-soft);
+}
+
+.fs-tool:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.fs-tool-chevron {
+    flex: none;
+    margin-left: 1px;
+    color: var(--fs-text-3);
+    transition: transform var(--fs-t-fast) ease;
+}
+
+.fs-tool[aria-expanded='true'] .fs-tool-chevron {
+    transform: rotate(180deg);
+}
+
+.fs-tool-sub,
+.fs-tool-dot {
+    color: var(--fs-text-3);
+    font-weight: 400;
+}
+
+.fs-tool-tag {
+    padding: 1px 6px;
+    border: 1px solid var(--fs-accent-border);
+    border-radius: 999px;
+    color: var(--fs-accent-text);
+    font-size: 0.65625rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.fs-tool-note {
+    padding: 0 4px;
+    color: var(--fs-text-3);
+    font-size: 0.75rem;
+}
+
+/* Dictation */
+.fs-dict-btn {
+    flex: none;
+    display: inline-grid;
+    grid-auto-flow: column;
+    place-items: center;
+    gap: 6px;
+    min-width: var(--fs-touch);
+    height: var(--fs-touch);
+    padding: 0 10px;
+    border: 1px solid var(--fs-border-soft);
+    border-radius: 17px;
+    background: var(--fs-fill);
+    box-shadow: var(--fs-edge-soft);
+    color: var(--fs-text-2);
+    font: 600 0.8125rem/1 var(--fs-font-sans);
+    cursor: pointer;
+    transition: background-color var(--fs-t-fast) ease, color var(--fs-t-fast) ease,
+        border-color var(--fs-t-fast) ease;
+}
+
+.fs-dict-btn:hover:not(:disabled) {
+    border-color: var(--fs-border);
+    background: var(--fs-fill-hover);
+    color: var(--fs-text);
+}
+
+.fs-dict-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.fs-dict-btn--ghost {
+    min-width: 36px;
+    padding: 0 8px;
+    border-color: transparent;
+    background: transparent;
+    box-shadow: none;
+}
+
+.fs-dict-btn--rec {
+    border-color: var(--fs-danger-border);
+    background: var(--fs-danger-soft);
+    color: var(--fs-danger);
+}
+
+.fs-dict-btn--rec:hover:not(:disabled) {
+    border-color: var(--fs-danger);
+    background: var(--fs-danger-soft);
+    color: var(--fs-danger);
+}
+
+.fs-rec-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: currentColor;
+    animation: fs-pulse 1.2s ease-in-out infinite;
+}
+
+.fs-rec-time {
+    font-variant-numeric: tabular-nums;
+}
+
+/* One-line status under the composer (dictation / model notices) */
+.fs-composer-status {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 4px 12px;
+    margin: 8px 4px 0;
+    color: var(--fs-text-2);
+    font-size: 0.78125rem;
+    line-height: 1.45;
+    text-align: center;
+}
+
+.fs-composer-status--error {
+    color: var(--fs-danger);
+}
+
+.fs-composer-status--consent {
+    justify-content: space-between;
+    padding: 10px 14px;
+    border: 1px solid var(--fs-glass-border);
+    border-radius: 14px;
+    background: var(--fs-surface-raised);
+    box-shadow: var(--fs-edge), var(--fs-shadow-md);
+    color: var(--fs-text);
+    text-align: left;
+}
+
+.fs-status-actions {
+    display: inline-flex;
+    gap: 14px;
+}
+
+.fs-link-btn {
+    min-height: 32px;
+    padding: 0 2px;
+    border: 0;
+    background: none;
+    color: var(--fs-text-2);
+    font: 500 0.8125rem/1 var(--fs-font-sans);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+}
+
+.fs-link-btn--strong {
+    color: var(--fs-accent-text);
+    font-weight: 600;
+}
+
+/* Picker menus opened from the composer */
+.fs-composer .fs-menu {
+    /* already inside the blurred composer: no nested backdrop blur */
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
+.fs-menu--picker {
+    min-width: 260px;
+}
+
+.fs-menu--top-end {
+    bottom: calc(100% + 8px);
+    right: 0;
+}
+
+.fs-menu-item--rich {
+    align-items: flex-start;
+    min-height: 52px;
+    padding: 8px 10px;
+}
+
+.fs-menu-item--rich > svg {
+    margin-top: 2px;
+}
+
+.fs-menu-text {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+    white-space: normal;
+}
+
+.fs-menu-desc {
+    color: var(--fs-text-3);
+    font-size: 0.75rem;
+    font-weight: 400;
+    line-height: 1.35;
+}
+
+.fs-menu-item[aria-disabled='true'] .fs-menu-desc {
+    color: var(--fs-text-3);
+}
+
+.fs-menu-item[aria-checked='true'] {
+    background: var(--fs-accent-soft);
+    box-shadow: inset 0 0 0 1px var(--fs-accent-border);
+}
+
+.fs-menu-item[aria-checked='true']:hover {
+    background: var(--fs-accent-soft);
+}
+
+.fs-menu-heading {
+    padding: 6px 10px 4px;
+    color: var(--fs-text-3);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+/* Mic with attached settings chevron (split button) */
+.fs-dict-group {
+    flex: none;
+    display: inline-flex;
+    align-items: stretch;
+}
+
+.fs-dict-group:has(.fs-dict-btn--more) .fs-dict-btn--main {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    border-right-color: transparent;
+}
+
+.fs-dict-btn--more {
+    min-width: 26px;
+    width: 26px;
+    padding: 0;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    color: var(--fs-text-3);
+}
+
+.fs-dict-btn--more[aria-expanded='true'] {
+    border-color: var(--fs-accent-border);
+    background: var(--fs-accent-soft);
+    color: var(--fs-text);
+}
+
+.fs-menu-check {
+    margin-left: auto;
+    padding-left: 10px;
+    color: var(--fs-accent-text);
+    font-weight: 700;
+}
+
+.fs-menu-item--rich .fs-menu-hint {
+    margin-top: 1px;
+}
+
+.fs-meta-model {
+    color: var(--fs-text-3);
+}
+
+@media (pointer: coarse) {
+    .fs-tool {
+        height: 36px;
+    }
+}
+
+@media (pointer: coarse) {
+    .fs-dict-btn--more {
+        min-width: 32px;
+        width: 32px;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Keep the one-line placeholder visible next to mic + send. */
+    .fs-dict-group .fs-dict-btn--main {
+        min-width: 38px;
+        padding: 0 8px;
+    }
+    .fs-dict-btn--more,
+    .fs-dict-btn--more:is(*) {
+        min-width: 26px;
+        width: 26px;
+    }
+    .fs-composer {
+        padding-left: 14px;
+    }
+    .fs-composer-tools {
+        margin-left: -4px;
+    }
+    .fs-menu--picker {
+        min-width: min(260px, calc(100vw - 48px));
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .fs-rec-dot {
+        animation: none;
+    }
+}
+
+.fs-composer textarea {
+    flex: 1;
+    min-width: 0;
+    min-height: 44px;
+    max-height: 200px;
+    margin: 0;
+    padding: 10px 0;
+    border: 0;
+    outline: none;
+    resize: none;
+    overflow-y: auto;
+    background: transparent;
+    color: var(--fs-text);
+    font: 400 1rem/24px var(--fs-font-sans);
+}
+
+.fs-composer textarea::placeholder {
+    color: var(--fs-text-3);
+}
+
+.fs-composer textarea:disabled {
+    opacity: 0.6;
+}
+
+.fs-send {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: var(--fs-touch);
+    height: var(--fs-touch);
+    border: 0;
+    border-radius: 17px;
+    background: linear-gradient(180deg, var(--fs-accent-2), var(--fs-accent));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), var(--fs-shadow-btn);
+    color: var(--fs-accent-ink);
+    cursor: pointer;
+    transition: background-color var(--fs-t-fast) ease, opacity var(--fs-t-fast) ease,
+        box-shadow var(--fs-t-fast) ease;
+}
+
+.fs-send:hover:not(:disabled) {
+    background: linear-gradient(180deg, var(--fs-accent-2), var(--fs-accent-hover));
+}
+
+.fs-send:disabled {
+    background: var(--fs-hover-strong);
+    box-shadow: none;
+    color: var(--fs-text-3);
+    cursor: not-allowed;
+}
+
+.fs-send--stop {
+    background: var(--fs-danger-soft);
+    box-shadow: none;
+    color: var(--fs-danger);
+    box-shadow: inset 0 0 0 1px var(--fs-danger-border);
+}
+
+.fs-send--stop:hover:not(:disabled) {
+    background: var(--fs-danger-border);
+}
+
+.fs-composer-hint {
+    margin: 6px 4px 0;
+    font-size: 0.75rem;
+    line-height: 1.4;
+    color: var(--fs-text-3);
+    text-align: center;
+}
+
+.fs-spin {
+    animation: fs-rotate 0.9s linear infinite;
+}
+
+@keyframes fs-rotate {
+    to { transform: rotate(360deg); }
+}
+
+/* ------------------------------------------------------------
+   Empty state / welcome + home page cards (L2, flat)
+   ------------------------------------------------------------ */
+.fs-card {
+    border: 1px solid var(--fs-border-soft);
+    border-radius: var(--fs-radius-lg);
+    background: var(--fs-surface-card);
+    box-shadow: var(--fs-edge), var(--fs-shadow-sm);
+    color: var(--fs-text);
+    transition: background-color var(--fs-t-fast) ease, border-color var(--fs-t-fast) ease,
+        box-shadow var(--fs-t-fast) ease;
+}
+
+.fs-card--interactive {
+    cursor: pointer;
+    text-align: left;
+}
+
+.fs-card--interactive:hover {
+    background: var(--fs-surface-card-hover);
+    border-color: var(--fs-border);
+}
+
+.fs-card--interactive:hover {
+    box-shadow: var(--fs-edge), var(--fs-shadow-md);
+}
+
+.fs-card--selected {
+    border-color: var(--fs-accent-border);
+    background: var(--fs-surface-card-hover);
+}
+
+/* ------------------------------------------------------------
+   Dialogs (L4)
+   ------------------------------------------------------------ */
+.fs-dialog-root {
+    position: fixed;
+    inset: 0;
+    z-index: 120;
+    display: grid;
+    place-items: center;
+    padding: 16px;
+    background: var(--fs-backdrop);
+    animation: fs-fade 0.15s ease-out;
+}
+
+.fs-dialog {
+    width: 100%;
+    max-width: 440px;
+    max-height: calc(100dvh - 32px);
+    overflow-y: auto;
+    padding: 22px;
+    border: 1px solid var(--fs-border);
+    border-radius: var(--fs-radius-xl);
+    background: var(--fs-surface-modal);
+    box-shadow: var(--fs-shadow-lg), var(--fs-edge);
+    color: var(--fs-text);
+}
+
+/* ------------------------------------------------------------
+   Narrow screens: compact header, 44px touch targets
+   ------------------------------------------------------------ */
+@media (max-width: 899px) {
+    .fs-app {
+        grid-template-columns: minmax(0, 1fr);
+        --fs-gutter: 14px;
+    }
+
+    .fs-header {
+        min-height: 56px;
+        gap: 8px;
+    }
+
+    .fs-btn,
+    .fs-nav-item,
+    .fs-input,
+    .fs-menu-item {
+        min-height: var(--fs-touch);
+    }
+
+    .fs-btn--icon {
+        width: var(--fs-touch);
+    }
+
+    /* Small icon buttons still get a 44px hit area on touch layouts; the
+       negative margin keeps the section header row compact. */
+    .fs-btn--sm {
+        width: var(--fs-touch);
+        height: var(--fs-touch);
+        min-height: var(--fs-touch);
+        margin: -8px -4px -8px 0;
+    }
+
+    .fs-msg--user .fs-msg-body {
+        max-width: 88%;
+    }
+
+    .fs-avatar {
+        width: 28px;
+        height: 28px;
+    }
+
+    .fs-msg {
+        gap: 10px;
+    }
+
+    .fs-msg-body {
+        max-width: calc(100% - 38px);
+    }
+}
+
+@media (pointer: coarse) {
+    .fs-btn,
+    .fs-nav-item,
+    .fs-menu-item,
+    .fs-history-item {
+        min-height: var(--fs-touch);
+    }
+}
+
+@media (max-width: 480px) {
+    .fs-composer-hint {
+        display: none;
+    }
+}
+
+/* ------------------------------------------------------------
+   Reduced motion: index.css zeroes animation/transition durations globally;
+   the loading dots additionally switch to a static, readable state.
+   ------------------------------------------------------------ */
+@media (prefers-reduced-motion: reduce) {
+    .fs-dots i {
+        opacity: 0.7;
+    }
+}
+
+/* ------------------------------------------------------------
+   Home hero + chat welcome (L2, flat)
+   ------------------------------------------------------------ */
+.fs-hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100%;
+    padding: 32px var(--fs-gutter);
+    text-align: center;
+}
+
+.fs-hero-brand-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.fs-hero-brand-row h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--fs-text);
+}
+
+.fs-hero-lede {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--fs-text-2);
+}
+
+.fs-hero-sub {
+    max-width: 40rem;
+    margin: 6px auto 0;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: var(--fs-text-3);
+}
+
+.fs-hero-title {
+    margin: 36px 0 32px;
+}
+
+.fs-hero-title h2 {
+    margin: 0 0 6px;
+    font-size: clamp(2rem, 4.5vw, 3rem);
+    font-weight: 300;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: var(--fs-text);
+}
+
+.fs-hero-title p {
+    margin: 0;
+    font-size: clamp(1.25rem, 2.6vw, 1.75rem);
+    font-weight: 300;
+    color: var(--fs-text-2);
+}
+
+.fs-hero-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    width: 100%;
+    max-width: 880px;
+}
+
+.fs-hero-grid > * {
+    min-width: 0;
+}
+
+.fs-pill {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+    height: 100%;
+    padding: 18px;
+    text-align: center;
+    font-family: var(--fs-font-sans);
+}
+
+.fs-pill-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--fs-text);
+}
+
+.fs-pill-desc {
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: var(--fs-text-2);
+}
+
+@media (max-width: 720px) {
+    .fs-hero-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .fs-hero-title {
+        margin: 24px 0 20px;
+    }
+}
+
+.fs-welcome {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 28px;
+    min-height: 100%;
+    padding: 8px 0 16px;
+}
+
+.fs-welcome-hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    text-align: center;
+    animation: fs-rise var(--fs-t) var(--fs-ease) both;
+}
+
+.fs-welcome-mark {
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    margin-bottom: 4px;
+    border: 1px solid var(--fs-border-soft);
+    border-radius: 18px;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0) 70%),
+        var(--fs-surface-card);
+    box-shadow: var(--fs-edge), var(--fs-shadow-md);
+}
+
+.fs-welcome-mark img {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+    filter: var(--fs-logo-filter);
+}
+
+.fs-welcome-title {
+    margin: 0;
+    font-size: clamp(1.625rem, 3.6vw, 2.25rem);
+    font-weight: 300;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    color: var(--fs-text);
+}
+
+.fs-welcome-title span {
+    font-weight: 600;
+}
+
+.fs-welcome-lede {
+    max-width: 30rem;
+    margin: 0;
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: var(--fs-text-2);
+}
+
+.fs-suggest {
+    width: 100%;
+    max-width: 640px;
+}
+
+.fs-suggest-label {
+    justify-content: center;
+    margin-bottom: 10px;
+    padding: 0;
+}
+
+.fs-suggest-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.fs-suggest-grid > li {
+    display: flex;
+    min-width: 0;
+}
+
+.fs-suggest-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 56px;
+    padding: 10px 12px;
+    border: 1px solid var(--fs-border-soft);
+    border-radius: var(--fs-radius-lg);
+    background: var(--fs-surface-card);
+    box-shadow: var(--fs-edge), var(--fs-shadow-sm);
+    color: var(--fs-text);
+    font: 500 0.8125rem/1.4 var(--fs-font-sans);
+    text-align: left;
+    cursor: pointer;
+    transition: background-color var(--fs-t-fast) ease, border-color var(--fs-t-fast) ease,
+        box-shadow var(--fs-t-fast) ease;
+}
+
+.fs-suggest-card:hover {
+    border-color: var(--fs-border);
+    background: var(--fs-surface-card-hover);
+    box-shadow: var(--fs-edge), var(--fs-shadow-md);
+}
+
+.fs-suggest-text {
+    flex: 1;
+    min-width: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.fs-suggest-go {
+    flex: none;
+    color: var(--fs-text-3);
+}
+
+.fs-context {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px 14px;
+    margin: -8px 0 0;
+    padding: 0;
+    list-style: none;
+    font-size: 0.75rem;
+    color: var(--fs-text-3);
+}
+
+.fs-context li {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.fs-welcome-note {
+    max-width: 34rem;
+    margin: -14px 0 0;
+    font-size: 0.75rem;
+    line-height: 1.5;
+    color: var(--fs-text-3);
+    text-align: center;
+}
+
+@keyframes fs-rise {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: none; }
+}
+
+@media (max-width: 560px) {
+    .fs-suggest-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    .fs-welcome {
+        gap: 22px;
+        justify-content: flex-start;
+        padding-top: 12px;
+    }
+}
+
+.fs-icon-tile {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--fs-accent-border);
+    border-radius: 12px;
+    background: var(--fs-accent-soft);
+    color: var(--fs-accent-text);
+}
+
+.fs-icon-tile--sm {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+}
+
+.fs-logo-tint {
+    filter: var(--fs-logo-filter);
+}
+
+/* ------------------------------------------------------------
+   Legacy Tailwind colour utilities (Conversation history) were written for
+   a dark surface. On the light theme, swap the 400-weight accents for
+   darker, AA-contrast equivalents; dark theme keeps them untouched.
+   ------------------------------------------------------------ */
+:root:not([data-theme='dark']) .fs-legacy-colors .text-teal-400 { color: #0f766e; }
+:root:not([data-theme='dark']) .fs-legacy-colors .text-emerald-400 { color: #047857; }
+:root:not([data-theme='dark']) .fs-legacy-colors .text-green-400 { color: #15803d; }
+:root:not([data-theme='dark']) .fs-legacy-colors .text-yellow-400 { color: #a16207; }
+:root:not([data-theme='dark']) .fs-legacy-colors .text-orange-400 { color: #c2410c; }
+:root:not([data-theme='dark']) .fs-legacy-colors .text-red-400 { color: #b91c1c; }
+:root:not([data-theme='dark']) .fs-legacy-colors .text-gray-400,
+:root:not([data-theme='dark']) .fs-legacy-colors .text-gray-500,
+:root:not([data-theme='dark']) .fs-legacy-colors .text-mutedText { color: var(--fs-text-3); }
+:root:not([data-theme='dark']) .fs-legacy-colors .border-gray-800\/60 { border-color: var(--fs-border-soft); }
+
+/* Narrow screens: the broad gradient covers most of the viewport, so dim it
+   to keep secondary text above 4.5:1 against the brightest blue. */
+@media (max-width: 899px) {
+    .fs-app::before {
+        opacity: 0.66;
+    }
+}

@@ -1,0 +1,510 @@
+/* ============================================================
+   FinSyntra Login — landing-matched glass design
+   Reuses the landing page's token language (deep indigo base,
+   aurora glows, glass surfaces, spectrum signature edge, Sora/Inter)
+   so Landing → Try Demo → Login reads as one product.
+   ============================================================ */
+
+.login-container {
+  /* Landing design tokens (scoped — the app bundle does not load tokens.css) */
+  --bg-0: #070b1c;
+  --bg-1: #0a1026;
+  --ink-1: #eef2ff;
+  --ink-2: #c3cbe8;
+  --ink-3: #8e9ac4;
+  --ink-4: #6b76a3;
+  /* Interaction accent follows the app (teal/emerald) so sign-in leads
+     straight into the workspace; names kept to avoid touching every rule. */
+  --blue: #38f2b5;
+  --blue-soft: #5ef2c0;
+  --indigo: #0ab3a6;
+  --violet: #0ab3a6;
+  --cyan: #5ef2c0;
+  --emerald: #34d399;
+  --glass-bg: rgba(148, 173, 255, 0.055);
+  --glass-bg-strong: rgba(148, 173, 255, 0.09);
+  --glass-bg-deep: rgba(10, 16, 38, 0.55);
+  --glass-border: rgba(160, 180, 255, 0.16);
+  --glass-border-strong: rgba(170, 190, 255, 0.28);
+  --spectrum: linear-gradient(100deg, #0ab3a6 0%, #38f2b5 100%);
+  --shadow-2: 0 24px 80px rgba(3, 6, 20, 0.6);
+  --glow-blue: 0 0 64px rgba(56, 242, 181, 0.20);
+  --r-md: 16px;
+  --r-lg: 22px;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast: 0.24s;
+
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: clamp(1.25rem, 4vw, 3rem);
+  background: var(--bg-0);
+  position: relative;
+  overflow: hidden;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* Atmosphere: aurora glows + faint grid, echoing the landing hero */
+.login-atmosphere {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(42rem 30rem at 12% -8%, rgba(56, 242, 181, 0.10) 0%, transparent 60%),
+    radial-gradient(38rem 26rem at 88% 8%, rgba(10, 179, 166, 0.08) 0%, transparent 60%),
+    radial-gradient(44rem 30rem at 50% 112%, rgba(56, 242, 181, 0.06) 0%, transparent 62%),
+    linear-gradient(rgba(148, 173, 255, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 173, 255, 0.045) 1px, transparent 1px);
+  background-size: auto, auto, auto, 44px 44px, 44px 44px;
+}
+
+/* Centered shell: brand above one well-proportioned card */
+.login-shell {
+  position: relative;
+  z-index: 1;
+  width: min(480px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.login-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.65rem;
+  text-align: center;
+}
+
+.login-brand-logo span {
+  color: var(--ink-1) !important;
+}
+
+.login-tagline {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--ink-2);
+  letter-spacing: 0.01em;
+}
+
+/* ===================== */
+/* CARD                  */
+/* ===================== */
+
+.login-card {
+  background: linear-gradient(180deg, var(--glass-bg-strong) 0%, var(--glass-bg) 100%);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-2), var(--glow-blue);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Spectrum signature edge — the landing's card accent */
+.login-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 2rem;
+  right: 2rem;
+  height: 2px;
+  background: var(--spectrum);
+  opacity: 0.9;
+}
+
+.login-card-body {
+  padding: 1.75rem 2rem 1.9rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-header-text {
+  margin-bottom: 1.4rem;
+}
+
+.card-header-text h2 {
+  font-family: 'Sora', 'Inter', system-ui, sans-serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--ink-1);
+  margin: 0 0 0.35rem;
+}
+
+.card-header-text p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--ink-3);
+}
+
+/* ===================== */
+/* DEMO PERSONA PANEL    */
+/* ===================== */
+
+.demo-panel {
+  background: var(--glass-bg-deep);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-md);
+  padding: 0.95rem 0.95rem 0.8rem;
+  margin-bottom: 1.1rem;
+}
+
+.demo-panel-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.7rem;
+}
+
+.demo-panel-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--blue-soft);
+}
+
+.demo-panel-hint {
+  font-size: 0.72rem;
+  color: var(--ink-4);
+}
+
+.demo-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.persona-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  height: 42px;
+  padding: 0 0.5rem;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--ink-2);
+  background: var(--glass-bg-strong);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+}
+
+.persona-btn svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: var(--ink-3);
+  transition: color var(--dur-fast) var(--ease-out);
+}
+
+.persona-btn:hover:not(:disabled) {
+  background: rgba(148, 173, 255, 0.14);
+  border-color: var(--glass-border-strong);
+  color: var(--ink-1);
+}
+
+.persona-btn:hover:not(:disabled) svg {
+  color: var(--blue-soft);
+}
+
+.persona-btn:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 2px;
+}
+
+.persona-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Admin persona: subtly featured, no fake claims attached */
+.persona-btn-featured {
+  background: rgba(56, 242, 181, 0.12);
+  border-color: rgba(56, 242, 181, 0.36);
+  color: #e8fff7;
+}
+
+.persona-btn-featured svg {
+  color: var(--blue-soft);
+}
+
+.persona-btn-featured:hover:not(:disabled) {
+  background: rgba(56, 242, 181, 0.20);
+  border-color: rgba(56, 242, 181, 0.55);
+  color: #ffffff;
+}
+
+.demo-note {
+  margin: 0.7rem 0 0;
+  font-size: 0.72rem;
+  line-height: 1.5;
+  color: var(--ink-4);
+}
+
+/* ===================== */
+/* DIVIDER               */
+/* ===================== */
+
+.login-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.1rem;
+  color: var(--ink-4);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.login-divider::before,
+.login-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--glass-border);
+}
+
+/* ===================== */
+/* FORM                  */
+/* ===================== */
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.login-form .space-y-2 {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.login-card label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+.login-card input[type="email"],
+.login-card input[type="password"],
+.login-card input[type="text"] {
+  height: 46px;
+  background: rgba(148, 173, 255, 0.06);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  font-size: 0.92rem;
+  color: var(--ink-1);
+  transition: border-color var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out);
+}
+
+.login-card input::placeholder {
+  color: var(--ink-4);
+}
+
+.login-card input[type="email"]:focus,
+.login-card input[type="password"]:focus,
+.login-card input[type="text"]:focus {
+  outline: none;
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(56, 242, 181, 0.20);
+  background: rgba(148, 173, 255, 0.09);
+}
+
+.login-card input:hover:not(:focus) {
+  border-color: var(--glass-border-strong);
+}
+
+/* Password visibility toggle */
+.login-card .relative button[aria-label*="input"] {
+  border-radius: 8px;
+  color: var(--ink-3);
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.login-card .relative button[aria-label*="input"]:hover {
+  background: rgba(148, 173, 255, 0.1);
+  color: var(--blue-soft);
+}
+
+/* Admin checkbox row */
+.login-card input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 17px;
+  height: 17px;
+  border: 1.5px solid var(--glass-border-strong);
+  border-radius: 5px;
+  background: rgba(148, 173, 255, 0.06);
+  cursor: pointer;
+  position: relative;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.login-card input[type="checkbox"]:hover {
+  border-color: var(--blue);
+}
+
+.login-card input[type="checkbox"]:checked {
+  background: var(--blue);
+  border-color: var(--blue);
+}
+
+.login-card input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  left: 4.5px;
+  top: 1.5px;
+  width: 4.5px;
+  height: 8.5px;
+  border: solid #0a1026;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.login-card input[type="checkbox"]:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 2px;
+}
+
+/* ===================== */
+/* SUBMIT BUTTON         */
+/* ===================== */
+
+.login-card .login-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #04201a;
+  background: #38f2b5;
+  border: none;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(56, 242, 181, 0.18);
+  transition: background-color var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out);
+}
+
+.login-card .login-submit:hover:not(:disabled) {
+  background: #5df5c6;
+  box-shadow: 0 6px 22px rgba(56, 242, 181, 0.26);
+}
+
+.login-card .login-submit:disabled {
+  background: rgba(142, 154, 196, 0.35);
+  box-shadow: none;
+  color: var(--ink-3);
+}
+
+/* ===================== */
+/* BADGES + FOOTER       */
+/* ===================== */
+
+.security-badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.6rem 1.25rem;
+  margin-top: 1.4rem;
+  padding-top: 1.1rem;
+  border-top: 1px solid var(--glass-border);
+}
+
+.security-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.76rem;
+  font-weight: 500;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+
+.security-badge .badge-icon {
+  width: 15px;
+  height: 15px;
+  color: var(--emerald);
+}
+
+.login-footer {
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+.login-footer p {
+  margin: 0;
+  font-size: 0.72rem;
+  color: var(--ink-4);
+}
+
+/* ===================== */
+/* RESPONSIVE            */
+/* ===================== */
+
+@media (max-width: 640px) {
+  .login-card-body {
+    padding: 1.4rem 1.25rem 1.5rem;
+  }
+
+  .login-card::before {
+    left: 1.25rem;
+    right: 1.25rem;
+  }
+
+  .demo-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .persona-btn {
+    height: 44px;
+  }
+
+  .card-header-text h2 {
+    font-size: 1.3rem;
+  }
+
+  .security-badges {
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 400px) {
+  /* Two ~95px columns: drop the glyph so "Engineering" is never clipped */
+  .persona-btn svg {
+    display: none;
+  }
+}
+
+@media (max-width: 360px) {
+  .demo-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .persona-btn,
+  .login-card .login-submit {
+    transition: none;
+  }
+
+  .persona-btn:hover:not(:disabled),
+  .login-card .login-submit:hover:not(:disabled) {
+    transform: none;
+  }
+}

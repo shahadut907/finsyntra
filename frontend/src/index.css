@@ -1,0 +1,118 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Semantic design tokens consumed by tailwind.config.js (hsl(var(--...))).
+ * Values follow the app's dark glass palette so utilities like
+ * bg-background / text-muted-foreground / bg-primary render correctly
+ * instead of falling back to invalid CSS.
+ */
+:root {
+  --background: 220 30% 94%;
+  --foreground: 220 28% 14%;
+  --card: 0 0% 100%;
+  --card-foreground: 220 28% 14%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 220 28% 14%;
+  --primary: 190 84% 27%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 220 25% 92%;
+  --secondary-foreground: 220 28% 14%;
+  --muted: 220 22% 92%;
+  --muted-foreground: 220 12% 36%;
+  --accent: 190 84% 27%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 350 70% 42%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 220 20% 84%;
+  --input: 220 20% 84%;
+  --ring: 190 84% 27%;
+  --surface: 0 0% 100%;
+  --surface-muted: 220 25% 96%;
+  --elevated: 0 0% 100%;
+  --brand: 190 84% 27%;
+  --brand-ink: 0 0% 100%;
+  --success: 160 84% 29%;
+  --warning: 32 92% 38%;
+  --danger: 350 70% 42%;
+  --radius: 0.75rem;
+}
+
+[data-theme='dark'] {
+  --background: 206 24% 6%;
+  --foreground: 210 40% 96%;
+  --card: 208 26% 9%;
+  --card-foreground: 210 40% 96%;
+  --popover: 208 28% 8%;
+  --popover-foreground: 210 40% 96%;
+  --primary: 217 91% 60%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 210 20% 16%;
+  --secondary-foreground: 210 40% 96%;
+  --muted: 208 24% 14%;
+  --muted-foreground: 206 12% 68%;
+  --accent: 158 87% 58%;
+  --accent-foreground: 160 78% 8%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 210 20% 20%;
+  --input: 210 20% 20%;
+  --ring: 217 91% 60%;
+  --surface: 208 28% 8%;
+  --surface-muted: 208 25% 11%;
+  --elevated: 208 26% 10%;
+  --brand: 158 87% 58%;
+  --brand-ink: 160 78% 8%;
+  --success: 160 84% 39%;
+  --warning: 38 92% 50%;
+  --danger: 0 84% 60%;
+  --radius: 0.75rem;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--fs-bg, #e8ecf3);
+  color: var(--fs-text, #1a2230);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
+    'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: 'Fira Code', source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+/* Visible keyboard focus across the app (components mostly remove the
+   default outline; this restores an accessible ring everywhere else). */
+:focus-visible {
+  outline: 2px solid hsl(var(--brand));
+  outline-offset: 2px;
+}
+
+/* Honour the OS reduced-motion setting everywhere (spinners keep turning:
+   they convey progress rather than decoration). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+  }
+
+  *:not(.animate-spin):not(.fs-spin),
+  *:not(.animate-spin):not(.fs-spin)::before,
+  *:not(.animate-spin):not(.fs-spin)::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

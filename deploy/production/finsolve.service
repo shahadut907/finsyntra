@@ -1,0 +1,67 @@
+# Native production systemd unit for the FinSyntra FastAPI backend.
+#
+# Install:
+#   sudo cp deploy/production/finsolve.service /etc/systemd/system/finsolve.service
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now finsolve
+#
+# Assumes the native directory layout in docs/NATIVE_DEPLOYMENT_RUNBOOK.md:
+#   /opt/finsolve/app       application code + venv
+#   /var/lib/finsolve       SQLite, Chroma, raw documents (persistent)
+#   /etc/finsolve/finsolve.env   production secrets (mode 0640)
+#
+# Validated with `systemd-analyze verify` only where noted in the runbook;
+# this file has not been exercised on a running systemd host from this
+# Windows development machine.
+
+[Unit]
+Description=FinSyntra RAG backend (FastAPI/Uvicorn)
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=finsolve
+Group=finsolve
+WorkingDirectory=/opt/finsolve/app
+
+# Migrations run as a separate step (deploy/production/start.sh) before this
+# unit starts so a failed migration blocks the service instead of racing it.
+#
+# Exactly ONE worker: the rate limiter, response cache, and Chroma
+# PersistentClient are process-local, and SQLite/Chroma are not designed for
+# concurrent writers across processes. Do not add --workers N.
+# No ExecReload: Uvicorn has no in-place reload (SIGHUP would just kill it);
+# use `systemctl restart finsolve`.
+ExecStart=/opt/finsolve/app/venv/bin/uvicorn src.backend.api.endpoints:app --host 127.0.0.1 --port 8000 --workers 1 --timeout-graceful-shutdown 30
+
+EnvironmentFile=/etc/finsolve/finsolve.env
+
+Restart=on-failure
+RestartSec=5
+# Graceful shutdown lets in-flight SSE answers finish (RAG hard timeout 45s,
+# bounded above at 30s by Uvicorn); systemd escalates to SIGKILL after this.
+TimeoutStopSec=40
+# Database, Chroma files and uploaded documents are created private to the
+# service account.
+UMask=0027
+
+# Owns and creates persistent storage with correct permissions if absent.
+StateDirectory=finsolve
+StateDirectoryMode=0750
+
+# Hardening — remove/relax only if a concrete requirement conflicts.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/finsolve
+ProtectHome=true
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=finsolve
+
+[Install]
+WantedBy=multi-user.target

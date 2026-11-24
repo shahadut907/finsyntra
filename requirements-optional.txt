@@ -1,0 +1,32 @@
+# FinSyntra — optional, import-guarded extras
+#
+#   pip install -r requirements-optional.txt
+#
+# Every package here is imported inside a try/except in application code, so the
+# app boots without them — but a feature degrades. They are separated from
+# requirements.txt because each needs native libraries that make a plain
+# `pip install -r requirements.txt` fail or behave differently per platform.
+#
+# NONE of these are installed in the currently verified environment.
+
+# --- PDF export (src/backend/services/pdf_export.py) ------------------------
+# Without these, pdf_export logs "WeasyPrint not available. PDF export will use
+# fallback." and GET /api/conversations/{id}/export?format=pdf is degraded.
+# WeasyPrint needs GTK/Pango native libraries, which are not trivial on Windows.
+weasyprint>=60.0
+markdown>=3.5
+
+# --- Faster PDF text extraction (src/backend/utils/document_processor.py) ---
+# `import fitz` is the FIRST branch of _extract_pdf_text's fallback chain.
+# Installing this CHANGES which extractor handles PDFs, so it is deliberately
+# not part of the default install mid-remediation. pdfminer.six / pdfplumber /
+# pypdfium2 (all in requirements.txt) currently cover PDF extraction.
+PyMuPDF>=1.24
+
+# --- Legacy Streamlit UI (src/frontend/app.py) -------------------------------
+# Used only by the dev launchers start_server.py option 1 and main_launcher.py;
+# never by production (deploy/production, Dockerfile). Already non-functional
+# (also needs reportlab, which is not declared). streamlit 1.28.1 requires
+# pillow<11, so it CANNOT share an environment with the patched Pillow 13 in
+# requirements.txt: install it only into a separate, throwaway venv.
+# streamlit==1.28.1

@@ -1,0 +1,6 @@
+/* Shell styles — the fixed ambient background sits behind all routes */
+
+#root {
+  position: relative;
+  isolation: isolate;
+}

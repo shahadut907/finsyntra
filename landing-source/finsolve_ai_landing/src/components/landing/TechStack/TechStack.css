@@ -1,0 +1,146 @@
+/* ============================================================
+   Technology / architecture strip
+   ============================================================ */
+
+.stack {
+  max-width: 980px;
+  margin-inline: auto;
+  padding: 34px 30px 28px;
+  display: grid;
+  gap: 26px;
+}
+
+.stack__line {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+}
+
+.stack__layer {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  text-align: center;
+  padding: 0 14px;
+}
+
+.stack__layer-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-bottom: 6px;
+  background: currentColor;
+  box-shadow: 0 0 16px currentColor;
+}
+
+.stack__layer--cyan .stack__layer-dot { color: var(--cyan); }
+.stack__layer--blue .stack__layer-dot { color: var(--blue-soft); }
+.stack__layer--violet .stack__layer-dot { color: var(--violet); }
+.stack__layer--emerald .stack__layer-dot { color: var(--emerald); }
+
+.stack__layer-name {
+  font-family: var(--font-display);
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: var(--ink-1);
+}
+
+.stack__layer-tech {
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  color: var(--cyan);
+}
+
+.stack__layer--violet .stack__layer-tech { color: #cabffc; }
+.stack__layer--emerald .stack__layer-tech { color: #7de3c0; }
+
+.stack__layer-desc {
+  font-size: 0.78rem;
+  color: var(--ink-3);
+}
+
+.stack__arrow {
+  position: absolute;
+  top: 5px;
+  right: -20px;
+  color: rgba(150, 175, 255, 0.55);
+}
+
+/* Horizontal rail behind the dots */
+.stack__line::before {
+  content: "";
+  position: absolute;
+  top: 39px;
+  left: 12%;
+  right: 12%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(140, 165, 255, 0.3) 15%, rgba(140, 165, 255, 0.3) 85%, transparent);
+}
+
+.stack__chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 9px;
+  padding-top: 22px;
+  border-top: 1px solid rgba(150, 170, 255, 0.1);
+}
+
+.stack__chip {
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  color: var(--ink-3);
+  background: rgba(140, 160, 255, 0.05);
+  border: 1px solid rgba(150, 170, 255, 0.14);
+}
+
+/* ---------------- Responsive ---------------- */
+
+@media (max-width: 860px) {
+  .stack__line {
+    grid-template-columns: 1fr;
+    gap: 26px;
+  }
+
+  .stack__layer {
+    grid-template-columns: auto 1fr auto;
+    justify-items: start;
+    align-items: center;
+    text-align: left;
+    gap: 4px 14px;
+    padding: 0 8px;
+  }
+
+  .stack__layer-dot {
+    grid-row: 1;
+    margin-bottom: 0;
+  }
+
+  .stack__layer-name {
+    grid-row: 1;
+  }
+
+  .stack__layer-tech {
+    grid-row: 1;
+    justify-self: end;
+  }
+
+  .stack__layer-desc {
+    grid-column: 2 / -1;
+    grid-row: 2;
+  }
+
+  .stack__arrow {
+    display: none;
+  }
+
+  .stack__line::before {
+    display: none;
+  }
+}

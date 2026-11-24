@@ -1,0 +1,907 @@
+/* ============================================================
+   FinSyntra Admin — iOS Frosted Glass Design System
+   ============================================================ */
+
+/* -----------------------------------------------------------
+   1. Design Tokens
+   ----------------------------------------------------------- */
+:root,
+.admin-layout {
+    /* Glass Backgrounds */
+    /* Aliases onto the shared tokens in glass.css so admin and the main app
+       read as one system. */
+    --glass-bg: var(--fs-surface-card);
+    --glass-bg-hover: var(--fs-surface-card-hover);
+    --glass-bg-active: rgba(255, 255, 255, 0.10);
+    --glass-bg-elevated: var(--fs-surface-nav);
+
+    /* Borders */
+    --glass-border: 1px solid var(--fs-border);
+    --glass-border-light: 1px solid var(--fs-border-soft);
+    --glass-border-focus: 1px solid var(--fs-accent-border);
+
+    /* Blur */
+    --glass-blur: blur(20px);
+    --glass-blur-heavy: blur(40px);
+    --glass-blur-light: blur(12px);
+
+    /* Shadows */
+    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    --glass-shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.2);
+    --glass-shadow-lg: 0 12px 48px rgba(0, 0, 0, 0.4);
+
+    /* Radii */
+    --glass-radius: 16px;
+    --glass-radius-sm: 12px;
+    --glass-radius-lg: 20px;
+    --glass-radius-pill: 9999px;
+
+    /* Toast Glass Tints */
+    --toast-success-bg: rgba(34, 197, 94, 0.12);
+    --toast-success-border: rgba(34, 197, 94, 0.25);
+    --toast-success-icon: rgba(34, 197, 94, 0.8);
+
+    --toast-error-bg: rgba(239, 68, 68, 0.12);
+    --toast-error-border: rgba(239, 68, 68, 0.25);
+    --toast-error-icon: rgba(239, 68, 68, 0.8);
+
+    --toast-info-bg: rgba(45, 212, 191, 0.12);
+    --toast-info-border: rgba(45, 212, 191, 0.25);
+    --toast-info-icon: rgba(45, 212, 191, 0.8);
+
+    --toast-warning-bg: rgba(245, 158, 11, 0.12);
+    --toast-warning-border: rgba(245, 158, 11, 0.25);
+    --toast-warning-icon: rgba(245, 158, 11, 0.8);
+
+    /* Text */
+    --text-primary: var(--fs-text);
+    --text-secondary: var(--fs-text-2);
+    --text-tertiary: var(--fs-text-3);
+    --text-accent: var(--fs-accent-text);
+}
+
+
+/* -----------------------------------------------------------
+   2. Admin Layout — Background Depth
+   ----------------------------------------------------------- */
+.admin-layout {
+    position: fixed;
+    inset: 0;
+    min-height: 0;
+    background: var(--fs-bg) !important;
+}
+
+.admin-layout::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: var(--fs-ambient);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.admin-layout>* {
+    position: relative;
+    z-index: 1;
+}
+
+
+/* -----------------------------------------------------------
+   3. Glass Card — Shared Panel
+   ----------------------------------------------------------- */
+.glass-card {
+    background: var(--glass-bg) !important;
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: var(--glass-border) !important;
+    border-radius: var(--glass-radius) !important;
+    box-shadow: var(--glass-shadow-sm);
+    transition: all 200ms ease;
+}
+
+.glass-card:hover {
+    background: var(--glass-bg-hover) !important;
+    box-shadow: var(--glass-shadow);
+}
+
+
+/* -----------------------------------------------------------
+   4. Header
+   ----------------------------------------------------------- */
+.glass-header {
+    background: var(--fs-surface-header) !important;
+    backdrop-filter: var(--glass-blur-heavy);
+    -webkit-backdrop-filter: var(--glass-blur-heavy);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+
+/* -----------------------------------------------------------
+   5. Sidebar
+   ----------------------------------------------------------- */
+.glass-sidebar {
+    background: var(--glass-bg-elevated) !important;
+    backdrop-filter: var(--glass-blur-heavy);
+    -webkit-backdrop-filter: var(--glass-blur-heavy);
+    border-right: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+.glass-nav-item {
+    background: transparent !important;
+    border: 1px solid transparent !important;
+    color: var(--text-secondary) !important;
+    transition: all 200ms ease !important;
+}
+
+.glass-nav-item:hover {
+    background: var(--glass-bg-hover) !important;
+    color: var(--text-primary) !important;
+}
+
+.glass-nav-item svg {
+    opacity: 0.6;
+    transition: opacity 200ms ease;
+}
+
+.glass-nav-item:hover svg {
+    opacity: 0.9;
+}
+
+.glass-nav-item-active {
+    background: var(--glass-bg-active) !important;
+    border: 1px solid rgba(45, 212, 191, 0.15) !important;
+    border-left: 3px solid rgba(45, 212, 191, 0.6) !important;
+    color: var(--text-primary) !important;
+}
+
+.glass-nav-item-active svg {
+    opacity: 1;
+    color: rgba(96, 165, 250, 0.9);
+}
+
+
+/* -----------------------------------------------------------
+   6. Stat Card (Metric Cards)
+   ----------------------------------------------------------- */
+.glass-stat-card {
+    background: var(--glass-bg) !important;
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: var(--glass-border) !important;
+    border-radius: var(--glass-radius) !important;
+    box-shadow: var(--glass-shadow-sm);
+    transition: all 200ms ease;
+}
+
+.glass-stat-card:hover {
+    background: var(--glass-bg-hover) !important;
+    box-shadow: var(--glass-shadow);
+}
+
+.glass-stat-card.accent-blue {
+    border-top: 2px solid rgba(45, 212, 191, 0.3) !important;
+}
+
+.glass-stat-card.accent-green {
+    border-top: 2px solid rgba(34, 197, 94, 0.3) !important;
+}
+
+.glass-stat-card.accent-purple {
+    border-top: 2px solid rgba(148, 163, 184, 0.3) !important;
+}
+
+.glass-stat-card.accent-orange {
+    border-top: 2px solid rgba(245, 158, 11, 0.3) !important;
+}
+
+.glass-stat-card.accent-red {
+    border-top: 2px solid rgba(239, 68, 68, 0.3) !important;
+}
+
+.glass-stat-card.accent-teal {
+    border-top: 2px solid rgba(20, 184, 166, 0.3) !important;
+}
+
+/* Glass icon container inside stat cards */
+.glass-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--glass-radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: var(--glass-blur-light);
+    -webkit-backdrop-filter: var(--glass-blur-light);
+    flex-shrink: 0;
+}
+
+.glass-icon.icon-blue {
+    background: rgba(45, 212, 191, 0.15);
+    color: rgba(96, 165, 250, 0.9);
+}
+
+.glass-icon.icon-green {
+    background: rgba(34, 197, 94, 0.15);
+    color: rgba(74, 222, 128, 0.9);
+}
+
+.glass-icon.icon-purple {
+    background: rgba(148, 163, 184, 0.15);
+    color: rgba(167, 139, 250, 0.9);
+}
+
+.glass-icon.icon-orange {
+    background: rgba(245, 158, 11, 0.15);
+    color: rgba(251, 191, 36, 0.9);
+}
+
+.glass-icon.icon-red {
+    background: rgba(239, 68, 68, 0.15);
+    color: rgba(248, 113, 113, 0.9);
+}
+
+.glass-icon.icon-teal {
+    background: rgba(20, 184, 166, 0.15);
+    color: rgba(45, 212, 191, 0.9);
+}
+
+.glass-icon.icon-gray {
+    background: rgba(148, 163, 184, 0.15);
+    color: rgba(148, 163, 184, 0.9);
+}
+
+/* Real-time badge */
+.glass-badge-live {
+    background: var(--glass-bg-hover);
+    color: var(--text-tertiary);
+    border-radius: var(--glass-radius-pill);
+    padding: 2px 8px;
+    font-size: 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+
+/* -----------------------------------------------------------
+   7. System Status / Mini Info Cards
+   ----------------------------------------------------------- */
+.glass-status-card {
+    background: var(--glass-bg) !important;
+    backdrop-filter: var(--glass-blur-light);
+    -webkit-backdrop-filter: var(--glass-blur-light);
+    border: var(--glass-border) !important;
+    border-radius: var(--glass-radius-sm) !important;
+    transition: all 200ms ease;
+    padding: 1rem;
+}
+
+.glass-status-card:hover {
+    background: var(--glass-bg-hover) !important;
+}
+
+.glass-status-card.tint-green {
+    border-left: 2px solid rgba(34, 197, 94, 0.4) !important;
+}
+
+.glass-status-card.tint-blue {
+    border-left: 2px solid rgba(45, 212, 191, 0.4) !important;
+}
+
+.glass-status-card.tint-violet {
+    border-left: 2px solid rgba(148, 163, 184, 0.4) !important;
+}
+
+.glass-status-card.tint-amber {
+    border-left: 2px solid rgba(245, 158, 11, 0.4) !important;
+}
+
+
+/* -----------------------------------------------------------
+   8. Data Tables
+   ----------------------------------------------------------- */
+.glass-table-header {
+    background: var(--glass-bg-elevated) !important;
+    backdrop-filter: var(--glass-blur-light);
+    -webkit-backdrop-filter: var(--glass-blur-light);
+}
+
+.glass-table-header th {
+    color: var(--text-secondary) !important;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.glass-table-row {
+    background: transparent;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04) !important;
+    transition: background 150ms ease;
+}
+
+.glass-table-row:hover {
+    background: var(--glass-bg-hover) !important;
+}
+
+/* Action buttons in tables */
+.glass-action-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    padding: 6px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 200ms ease;
+}
+
+.glass-action-btn:hover {
+    background: var(--glass-bg-hover);
+    color: var(--text-primary);
+}
+
+.glass-action-btn.danger:hover {
+    background: rgba(239, 68, 68, 0.15);
+    color: rgba(248, 113, 113, 0.9);
+}
+
+
+/* -----------------------------------------------------------
+   9. Forms & Modals
+   ----------------------------------------------------------- */
+.glass-modal-overlay {
+    background: rgba(0, 0, 0, 0.6) !important;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.glass-modal {
+    background: var(--glass-bg-elevated) !important;
+    backdrop-filter: var(--glass-blur-heavy) !important;
+    -webkit-backdrop-filter: var(--glass-blur-heavy) !important;
+    border: var(--glass-border) !important;
+    border-radius: var(--glass-radius-lg) !important;
+    box-shadow: var(--glass-shadow-lg) !important;
+    color: var(--text-primary);
+}
+
+.glass-input {
+    background: rgba(255, 255, 255, 0.04) !important;
+    border: var(--glass-border-light) !important;
+    border-radius: var(--glass-radius-sm) !important;
+    color: var(--text-primary) !important;
+    transition: all 200ms ease;
+}
+
+.glass-input::placeholder {
+    color: var(--text-tertiary);
+}
+
+.glass-input:focus {
+    border: var(--glass-border-focus) !important;
+    box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.1);
+    outline: none;
+}
+
+/* Select / Dropdown */
+.glass-select {
+    background: rgba(255, 255, 255, 0.04) !important;
+    border: var(--glass-border-light) !important;
+    border-radius: var(--glass-radius-sm) !important;
+    color: var(--text-primary) !important;
+    transition: all 200ms ease;
+}
+
+.glass-select:focus {
+    border: var(--glass-border-focus) !important;
+    box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.1);
+    outline: none;
+}
+
+.glass-select option {
+    background: #1a1a2e;
+    color: var(--text-primary);
+}
+
+/* Form labels */
+.glass-label {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+
+/* -----------------------------------------------------------
+   10. Buttons
+   ----------------------------------------------------------- */
+.glass-btn {
+    backdrop-filter: var(--glass-blur-light);
+    -webkit-backdrop-filter: var(--glass-blur-light);
+    border-radius: var(--glass-radius-sm);
+    transition: all 200ms ease;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.glass-btn-blue {
+    background: rgba(45, 212, 191, 0.2);
+    border: 1px solid rgba(45, 212, 191, 0.3);
+    color: rgba(147, 197, 253, 0.95);
+}
+
+.glass-btn-blue:hover {
+    background: rgba(45, 212, 191, 0.3);
+    border-color: rgba(45, 212, 191, 0.45);
+}
+
+.glass-btn-green {
+    background: rgba(34, 197, 94, 0.2);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    color: rgba(134, 239, 172, 0.95);
+}
+
+.glass-btn-green:hover {
+    background: rgba(34, 197, 94, 0.3);
+    border-color: rgba(34, 197, 94, 0.45);
+}
+
+.glass-btn-red {
+    background: rgba(239, 68, 68, 0.2);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: rgba(252, 165, 165, 0.95);
+}
+
+.glass-btn-red:hover {
+    background: rgba(239, 68, 68, 0.3);
+    border-color: rgba(239, 68, 68, 0.45);
+}
+
+.glass-btn-purple {
+    background: rgba(148, 163, 184, 0.2);
+    border: 1px solid rgba(148, 163, 184, 0.3);
+    color: rgba(196, 181, 253, 0.95);
+}
+
+.glass-btn-purple:hover {
+    background: rgba(148, 163, 184, 0.3);
+    border-color: rgba(148, 163, 184, 0.45);
+}
+
+.glass-btn-orange {
+    background: rgba(245, 158, 11, 0.2);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    color: rgba(253, 224, 71, 0.95);
+}
+
+.glass-btn-orange:hover {
+    background: rgba(245, 158, 11, 0.3);
+    border-color: rgba(245, 158, 11, 0.45);
+}
+
+.glass-btn-ghost {
+    background: transparent;
+    border: var(--glass-border);
+    color: var(--text-secondary);
+}
+
+.glass-btn-ghost:hover {
+    background: var(--glass-bg-hover);
+    color: var(--text-primary);
+}
+
+.glass-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+
+/* -----------------------------------------------------------
+   11. Toast Notifications — Glass
+   ----------------------------------------------------------- */
+.glass-toast-container {
+    /* Top-centre on wide screens: clear of header actions (right), page
+       titles (left) and the composer (bottom). Narrow screens use a full-width
+       strip under the compact header instead (see media query below). */
+    position: fixed;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: max-content;
+    max-width: calc(100vw - 32px);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    pointer-events: none;
+}
+
+.glass-toast {
+    pointer-events: auto;
+    position: relative;
+    min-width: min(320px, calc(100vw - 32px));
+    max-width: 420px;
+    padding: 14px 16px 14px 16px;
+    border-radius: var(--glass-radius-sm);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    box-shadow: var(--glass-shadow-sm);
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    overflow: hidden;
+    animation: glass-toast-in 300ms ease-out forwards;
+    color: var(--text-primary);
+    font-size: 0.875rem;
+}
+
+.glass-toast.exiting {
+    animation: glass-toast-out 200ms ease-in forwards;
+}
+
+.glass-toast.toast-success {
+    background: linear-gradient(var(--toast-success-bg), var(--toast-success-bg)), var(--fs-surface-raised);
+    border: 1px solid var(--toast-success-border);
+    border-left: 3px solid var(--toast-success-icon);
+}
+
+.glass-toast.toast-error {
+    background: linear-gradient(var(--toast-error-bg), var(--toast-error-bg)), var(--fs-surface-raised);
+    border: 1px solid var(--toast-error-border);
+    border-left: 3px solid var(--toast-error-icon);
+}
+
+.glass-toast.toast-info {
+    background: linear-gradient(var(--toast-info-bg), var(--toast-info-bg)), var(--fs-surface-raised);
+    border: 1px solid var(--toast-info-border);
+    border-left: 3px solid var(--toast-info-icon);
+}
+
+.glass-toast.toast-warning {
+    background: linear-gradient(var(--toast-warning-bg), var(--toast-warning-bg)), var(--fs-surface-raised);
+    border: 1px solid var(--toast-warning-border);
+    border-left: 3px solid var(--toast-warning-icon);
+}
+
+/* Toast icon circle */
+.glass-toast-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 0.85rem;
+    font-weight: 700;
+    backdrop-filter: var(--glass-blur-light);
+    -webkit-backdrop-filter: var(--glass-blur-light);
+}
+
+.toast-success .glass-toast-icon {
+    background: rgba(34, 197, 94, 0.18);
+    color: var(--toast-success-icon);
+}
+
+.toast-error .glass-toast-icon {
+    background: rgba(239, 68, 68, 0.18);
+    color: var(--toast-error-icon);
+}
+
+.toast-info .glass-toast-icon {
+    background: rgba(45, 212, 191, 0.18);
+    color: var(--toast-info-icon);
+}
+
+.toast-warning .glass-toast-icon {
+    background: rgba(245, 158, 11, 0.18);
+    color: var(--toast-warning-icon);
+}
+
+/* Toast close button */
+.glass-toast-close {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-tertiary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    opacity: 0;
+    transition: all 200ms ease;
+    padding: 0;
+    line-height: 1;
+}
+
+.glass-toast:hover .glass-toast-close {
+    opacity: 1;
+}
+
+.glass-toast-close:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: var(--text-primary);
+}
+
+/* Toast progress bar */
+.glass-toast-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 2px;
+    border-radius: 0 0 0 var(--glass-radius-sm);
+    animation: glass-toast-progress linear forwards;
+}
+
+.toast-success .glass-toast-progress {
+    background: var(--toast-success-icon);
+}
+
+.toast-error .glass-toast-progress {
+    background: var(--toast-error-icon);
+}
+
+.toast-info .glass-toast-progress {
+    background: var(--toast-info-icon);
+}
+
+.toast-warning .glass-toast-progress {
+    background: var(--toast-warning-icon);
+}
+
+
+/* -----------------------------------------------------------
+   12. Animations
+   ----------------------------------------------------------- */
+@keyframes glass-toast-in {
+    from {
+        transform: translateX(20px) scale(0.95);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0) scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes glass-toast-out {
+    from {
+        transform: translateX(0) scale(1);
+        opacity: 1;
+    }
+
+    to {
+        transform: translateX(30px) scale(0.95);
+        opacity: 0;
+    }
+}
+
+@keyframes glass-toast-progress {
+    from {
+        width: 100%;
+    }
+
+    to {
+        width: 0%;
+    }
+}
+
+@keyframes pulse-glow {
+
+    0%,
+    100% {
+        box-shadow: 0 0 4px rgba(34, 197, 94, 0.4);
+    }
+
+    50% {
+        box-shadow: 0 0 12px rgba(34, 197, 94, 0.7);
+    }
+}
+
+.live-dot {
+    animation: pulse-glow 2s ease-in-out infinite;
+}
+
+
+/* -----------------------------------------------------------
+   13. Scrollbars
+   ----------------------------------------------------------- */
+.admin-layout ::-webkit-scrollbar {
+    width: 6px;
+}
+
+.admin-layout ::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.admin-layout ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+
+.admin-layout ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+
+/* -----------------------------------------------------------
+   14. Global Transitions & Focus
+   ----------------------------------------------------------- */
+.admin-layout button,
+.admin-layout a,
+.admin-layout input,
+.admin-layout select,
+.admin-layout [role="button"],
+.admin-layout tr {
+    transition: all 200ms ease;
+}
+
+.admin-layout *:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(45, 212, 191, 0.3);
+    border-radius: 4px;
+}
+
+
+/* -----------------------------------------------------------
+   15. Quick Stats Grid (Overview)
+   ----------------------------------------------------------- */
+.glass-quick-stat {
+    background: var(--glass-bg) !important;
+    backdrop-filter: var(--glass-blur-light);
+    -webkit-backdrop-filter: var(--glass-blur-light);
+    border: var(--glass-border) !important;
+    border-radius: var(--glass-radius-sm) !important;
+    transition: all 200ms ease;
+}
+
+.glass-quick-stat:hover {
+    background: var(--glass-bg-hover) !important;
+}
+
+
+/* -----------------------------------------------------------
+   16. System Summary Bar
+   ----------------------------------------------------------- */
+.glass-summary-bar {
+    background: var(--glass-bg) !important;
+    backdrop-filter: var(--glass-blur-light);
+    -webkit-backdrop-filter: var(--glass-blur-light);
+    border: var(--glass-border) !important;
+    border-radius: var(--glass-radius-sm) !important;
+}
+
+
+/* -----------------------------------------------------------
+   17. Activity Items
+   ----------------------------------------------------------- */
+.glass-activity-item {
+    background: var(--glass-bg) !important;
+    backdrop-filter: var(--glass-blur-light);
+    -webkit-backdrop-filter: var(--glass-blur-light);
+    border: var(--glass-border) !important;
+    border-radius: var(--glass-radius-sm) !important;
+    transition: all 200ms ease;
+}
+
+.glass-activity-item:hover {
+    background: var(--glass-bg-hover) !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+
+/* -----------------------------------------------------------
+   18. Connection Error Banner
+   ----------------------------------------------------------- */
+.glass-error-banner {
+    background: rgba(239, 68, 68, 0.08) !important;
+    backdrop-filter: var(--glass-blur-light);
+    -webkit-backdrop-filter: var(--glass-blur-light);
+    border: 1px solid rgba(239, 68, 68, 0.2) !important;
+    border-radius: var(--glass-radius-sm) !important;
+}
+
+
+/* -----------------------------------------------------------
+   19. Loading Overlay
+   ----------------------------------------------------------- */
+.glass-loading {
+    background: var(--glass-bg-elevated) !important;
+    backdrop-filter: var(--glass-blur-heavy);
+    -webkit-backdrop-filter: var(--glass-blur-heavy);
+    border: var(--glass-border) !important;
+    border-radius: var(--glass-radius) !important;
+    box-shadow: var(--glass-shadow);
+}
+
+
+/* -----------------------------------------------------------
+   20. Main Content Area
+   ----------------------------------------------------------- */
+.glass-content {
+    background: transparent;
+}
+
+@media (max-width: 899px) {
+    .glass-toast-container {
+        top: 68px;
+        right: 12px;
+        left: 12px;
+        transform: none;
+        width: auto;
+        max-width: none;
+    }
+
+    .glass-toast {
+        max-width: none;
+    }
+}
+
+
+/* Compact toasts: small icon, concise text, subtle glass. Routine messages
+   carry no close button or progress bar; errors/warnings keep a dismiss. */
+.glass-toast-container {
+    gap: 6px;
+}
+
+.glass-toast {
+    min-width: 0;
+    max-width: min(320px, calc(100vw - 24px));
+    padding: 8px 12px;
+    gap: 8px;
+    align-items: center;
+    border-radius: 12px;
+    border-left-width: 1px;
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    -webkit-backdrop-filter: blur(14px) saturate(150%);
+    backdrop-filter: blur(14px) saturate(150%);
+    box-shadow: var(--fs-edge), var(--fs-shadow-md);
+    animation-duration: 180ms;
+}
+
+.glass-toast .glass-toast-icon {
+    flex: none;
+    width: auto;
+    height: auto;
+    min-width: 0;
+    border-radius: 0;
+    background: none;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    line-height: 1;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+.glass-toast-text {
+    flex: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.glass-toast .glass-toast-close {
+    flex: none;
+    opacity: 0.8;
+    min-width: 28px;
+    min-height: 28px;
+}
+
+.glass-toast .glass-toast-progress {
+    display: none;
+}
+
+@media (max-width: 480px) {
+    .glass-toast-container {
+        left: 12px;
+        right: 12px;
+        transform: none;
+        width: auto;
+        align-items: center;
+    }
+}

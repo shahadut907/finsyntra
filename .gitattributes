@@ -1,0 +1,11 @@
+*.largefile filter=lfs diff=lfs merge=lfs -text
+*.zip filter=lfs diff=lfs merge=lfs -text
+*.mp4 filter=lfs diff=lfs merge=lfs -text
+
+# Native Linux deployment files must keep LF endings in any checkout, because
+# they are executed by /bin/sh and systemd/Nginx on the host.
+*.sh text eol=lf
+deploy/production/finsolve.service text eol=lf
+deploy/production/nginx.conf text eol=lf
+deploy/production/.env.production.example text eol=lf
+requirements-linux-py311.lock text eol=lf

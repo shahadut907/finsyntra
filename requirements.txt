@@ -1,0 +1,84 @@
+# FinSyntra — runtime dependencies
+#
+# Reconciled against the actual import graph (Wave 1). Every entry below is
+# either imported by src/backend, src/config, or the supported scripts/ tooling,
+# or is a required non-import runtime dependency (noted inline).
+#
+# Test/dev tooling:      requirements-dev.txt
+# Import-guarded extras: requirements-optional.txt
+#
+# Versions match the environment this application is currently verified to run
+# on. Do not bump without re-running the Wave 1 verification.
+
+# ── Web framework ───────────────────────────────────────────────────────────
+# fastapi/starlette/python-multipart raised together for unauthenticated
+# request-parsing DoS advisories (CVE-2024-24762, CVE-2024-53981,
+# CVE-2024-47874, CVE-2025-54121). The 0.x line keeps pydantic 2.5 and
+# chromadb 0.4.22 compatible; Starlette 1.x would force a pydantic upgrade.
+fastapi==0.116.2
+starlette==0.48.0
+uvicorn==0.24.0
+pydantic==2.5.0
+pydantic-settings==2.1.0
+python-multipart==0.0.32     # not imported: required by FastAPI for Form/UploadFile
+python-dotenv==1.0.0         # not imported: required by pydantic-settings env_file
+
+# ── Database ────────────────────────────────────────────────────────────────
+SQLAlchemy==2.0.41           # src/backend/database/database.py, api/conversations.py
+alembic==1.16.2              # alembic/versions/*, Makefile `migrate` target
+asyncpg==0.30.0              # services/conversation_memory.py, workers/vector_deletion_worker.py
+psycopg2-binary==2.9.9       # sync SQLAlchemy engine (database.py, alembic/env.py) when DATABASE_URL=postgresql://...
+redis[hiredis]==6.2.0        # database.py, cache_manager.py, conversation_memory.py
+
+# ── Embeddings and vector store ─────────────────────────────────────────────
+chromadb==0.4.22
+sentence-transformers==2.3.1
+transformers==4.36.0         # pinned for sentence-transformers 2.3.1 compatibility
+huggingface_hub==0.20.3      # pinned for sentence-transformers 2.3.1 compatibility
+numpy==1.25.2
+# torch: pinned to 2.7.1, the only version the application and test suites were
+# run on (sentence-transformers 2.3.1 needs >= 1.11; torch 2.7.1 needs
+# sympy >= 1.13.3, typing-extensions >= 4.10, both satisfied by the tested set).
+# `==2.7.1` matches any 2.7.1 build (PEP 440 local labels), so an installed
+# 2.7.1+cu118 dev build is kept. Production hosts have no GPU: install the
+# CPU build from requirements-linux-py311.lock (runbook §4), not from PyPI's
+# default CUDA wheel.
+torch==2.7.1
+
+# ── Authentication ──────────────────────────────────────────────────────────
+PyJWT==2.8.0                 # imported as `jwt` in auth/authentication.py
+passlib[bcrypt]==1.7.4
+bcrypt==4.3.0                # passlib backend; 4.1+ logs a benign __about__ warning
+
+# ── Document processing ─────────────────────────────────────────────────────
+pandas==2.1.4                # utils/document_processor.py, formatters/, retrieval/
+# PDF stack: pdfminer.six >= 20251230 fixes CVE-2025-64512 / CVE-2025-70559
+# (pickled CMap code execution); pdfplumber 0.11.9 pins exactly that version and
+# accepts Pillow >= 9.1. PyPDF2 removed:
+# end-of-life, GHSA-4vvm-4w3v-6mr8 unfixed; pypdfium2 (a pdfplumber dependency)
+# is the last text fallback instead.
+pdfminer.six==20251230       # PDF extraction
+pdfplumber==0.11.9           # PDF extraction fallback
+pypdfium2==4.30.0            # PDF extraction fallback (PDFium); required by pdfplumber (4.30.1 is yanked: text-extraction regression)
+# Pillow is not imported by src/ but is loaded by pdfplumber and decodes the
+# rendered pages on the OCR path (pdf2image + poppler, present in the
+# Dockerfile). 13.0.0 is the first release with no open advisories (10.4.0:
+# 82, incl. decoder heap overflows; 12.3.0 still 59). Requires Python >= 3.11.
+Pillow==13.0.0
+pdf2image==1.17.0            # OCR fallback — needs poppler-utils (in Dockerfile)
+pytesseract==0.3.13          # OCR fallback — needs tesseract-ocr (in Dockerfile)
+
+# ── Language detection and translation (Bangla/English support) ─────────────
+langdetect==1.0.9            # services/language_utils.py
+deep-translator==1.11.4      # services/language_utils.py
+
+# ── HTTP clients and observability ──────────────────────────────────────────
+requests==2.31.0             # api/endpoints.py, services/rag_service.py, monitoring/
+httpx==0.25.2                # api/chat_stream.py (async Ollama calls)
+psutil==7.0.0                # api/endpoints.py, api/admin.py, monitoring/
+prometheus-client==0.20.0    # workers/vector_deletion_worker.py, Makefile `worker`
+
+# streamlit moved to requirements-optional.txt: only the legacy src/frontend/app.py
+# imports it, launched solely by the dev launchers (start_server.py option 1,
+# main_launcher.py). No production path (deploy/production, Dockerfile CMD)
+# uses it.

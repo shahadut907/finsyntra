@@ -1,0 +1,15 @@
+# FinSyntra — test and development dependencies
+#
+#   pip install -r requirements.txt -r requirements-dev.txt
+#
+# Test data isolation is enforced by the repository-root conftest.py: pytest
+# runs against a temporary SQLite database, a temporary Chroma directory and a
+# temporary document directory, and fails closed if it ever resolves to the
+# development paths. See tests/test_data_isolation.py.
+
+-r requirements.txt
+
+pytest==8.4.1
+pytest-asyncio==1.3.0        # pytest.ini sets asyncio_mode = auto
+anyio==3.7.1                 # required by httpx's ASGITransport in async tests
+httpx==0.25.2                # also a runtime dep; pinned here for ASGI test client

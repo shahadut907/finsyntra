@@ -1,0 +1,32 @@
+.section {
+  padding-block: calc(var(--section-gap) / 2);
+}
+
+.section__head {
+  display: grid;
+  gap: 18px;
+  margin-bottom: clamp(40px, 6vw, 64px);
+  max-width: 720px;
+}
+
+.section__head--center {
+  margin-inline: auto;
+  text-align: center;
+  justify-items: center;
+}
+
+.section__head--center .eyebrow::before {
+  display: none;
+}
+
+.section__title em {
+  font-style: normal;
+  color: transparent;
+  background: var(--spectrum);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.section__lead {
+  margin: 0;
+}

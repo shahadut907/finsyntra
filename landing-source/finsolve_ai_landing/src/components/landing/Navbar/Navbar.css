@@ -1,0 +1,221 @@
+/* Floating glass navigation */
+
+.nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  height: var(--nav-h);
+  display: flex;
+  align-items: center;
+  transition:
+    background-color var(--dur-med) ease,
+    box-shadow var(--dur-med) ease,
+    backdrop-filter var(--dur-med) ease;
+}
+
+.nav--scrolled {
+  background: rgba(8, 12, 30, 0.72);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  box-shadow:
+    0 1px 0 rgba(150, 170, 255, 0.12),
+    0 12px 40px rgba(3, 6, 20, 0.45);
+}
+
+.nav__inner {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.nav__links {
+  display: flex;
+  gap: 4px;
+  margin-inline: auto;
+}
+
+.nav__link {
+  position: relative;
+  padding: 9px 15px;
+  border-radius: 10px;
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: var(--ink-2);
+  transition: color var(--dur-fast) ease, background-color var(--dur-fast) ease;
+}
+
+.nav__link:hover {
+  color: var(--ink-1);
+  background: rgba(140, 160, 255, 0.08);
+}
+
+.nav__actions {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.nav__signin {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--ink-2);
+  padding: 9px 14px;
+  border-radius: 10px;
+  transition: color var(--dur-fast) ease, background-color var(--dur-fast) ease;
+}
+
+.nav__signin:hover {
+  color: var(--ink-1);
+  background: rgba(140, 160, 255, 0.08);
+}
+
+.nav__cta {
+  padding: 10px 20px;
+  font-size: 0.88rem;
+}
+
+/* Burger (mobile) */
+.nav__burger {
+  display: none;
+  position: relative;
+  z-index: 130;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid var(--glass-border);
+  background: rgba(140, 160, 255, 0.07);
+}
+
+.nav__burger span {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--ink-1);
+  transition: transform var(--dur-med) var(--ease-out), top var(--dur-med) var(--ease-out);
+}
+
+.nav__burger span:nth-child(1) {
+  top: 17px;
+}
+
+.nav__burger span:nth-child(2) {
+  top: 25px;
+}
+
+.nav__burger--open span:nth-child(1) {
+  top: 21px;
+  transform: rotate(45deg);
+}
+
+.nav__burger--open span:nth-child(2) {
+  top: 21px;
+  transform: rotate(-45deg);
+}
+
+/* Mobile sheet */
+.nav__sheet {
+  position: fixed;
+  inset: var(--nav-h) 12px 12px;
+  z-index: 120;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  padding: 26px;
+  border-radius: var(--r-xl);
+  background:
+    linear-gradient(180deg, rgba(18, 26, 56, 0.92), rgba(9, 14, 34, 0.95));
+  backdrop-filter: blur(28px) saturate(150%);
+  -webkit-backdrop-filter: blur(28px) saturate(150%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 0 0 1px rgba(150, 170, 255, 0.12),
+    var(--shadow-2);
+  opacity: 0;
+  transform: translateY(-12px) scale(0.98);
+  pointer-events: none;
+  visibility: hidden;
+  transition:
+    opacity var(--dur-med) var(--ease-out),
+    transform var(--dur-med) var(--ease-out),
+    visibility 0s var(--dur-med);
+}
+
+.nav__sheet--open {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+  visibility: visible;
+  transition:
+    opacity var(--dur-med) var(--ease-out),
+    transform var(--dur-med) var(--ease-out);
+}
+
+.nav__sheet-links {
+  display: grid;
+  gap: 6px;
+}
+
+.nav__sheet-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px 16px;
+  border-radius: 14px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--ink-1);
+  background: rgba(140, 160, 255, 0.05);
+  border: 1px solid rgba(150, 170, 255, 0.1);
+  opacity: 0;
+  transform: translateX(-10px);
+}
+
+.nav__sheet--open .nav__sheet-link {
+  animation: sheet-link-in 0.5s var(--ease-out) forwards;
+  animation-delay: calc(var(--i) * 60ms + 80ms);
+}
+
+@keyframes sheet-link-in {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.nav__sheet-ctas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: auto;
+}
+
+.nav__sheet-ctas .cta {
+  justify-content: center;
+}
+
+@media (max-width: 920px) {
+  .nav__links,
+  .nav__actions {
+    display: none;
+  }
+
+  .nav__inner {
+    justify-content: space-between;
+  }
+
+  .nav__burger {
+    display: block;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav__sheet-link {
+    opacity: 1;
+    transform: none;
+    animation: none !important;
+  }
+}

@@ -1,0 +1,46 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Professional navy blue -->
+    <style>
+      .logo-color { fill: #1e3a5f; }
+    </style>
+  </defs>
+  
+  <!-- 3D Cube/Network Icon -->
+  <g transform="translate(100, 100)">
+    <!-- Bottom left face -->
+    <path d="M -45 0 L -45 -40 L 0 -65 L 0 -25 Z" class="logo-color" opacity="0.8"/>
+    
+    <!-- Bottom right face -->
+    <path d="M 0 -25 L 0 -65 L 45 -40 L 45 0 Z" class="logo-color" opacity="0.9"/>
+    
+    <!-- Top face -->
+    <path d="M -45 -40 L 0 -65 L 45 -40 L 0 -15 Z" class="logo-color"/>
+    
+    <!-- Left edge (darker) -->
+    <path d="M -45 0 L -45 -40 L 0 -15 Z" class="logo-color" opacity="0.6"/>
+    
+    <!-- Right edge (medium) -->
+    <path d="M 45 0 L 45 -40 L 0 -15 Z" class="logo-color" opacity="0.7"/>
+    
+    <!-- Bottom face -->
+    <path d="M -45 0 L 0 25 L 45 0 L 0 -15 Z" class="logo-color" opacity="0.85"/>
+    
+    <!-- Front left face -->
+    <path d="M -45 0 L 0 25 L 0 60 L -45 35 Z" class="logo-color" opacity="0.7"/>
+    
+    <!-- Front right face -->
+    <path d="M 45 0 L 0 25 L 0 60 L 45 35 Z" class="logo-color" opacity="0.75"/>
+    
+    <!-- Central connecting lines -->
+    <line x1="0" y1="-65" x2="0" y2="-15" stroke="#1e3a5f" stroke-width="8" stroke-linecap="round"/>
+    <line x1="0" y1="25" x2="0" y2="60" stroke="#1e3a5f" stroke-width="8" stroke-linecap="round"/>
+    <line x1="-45" y1="0" x2="0" y2="0" stroke="#1e3a5f" stroke-width="8" stroke-linecap="round"/>
+    <line x1="45" y1="0" x2="0" y2="0" stroke="#1e3a5f" stroke-width="8" stroke-linecap="round"/>
+    
+    <!-- Central circle (hub) -->
+    <circle cx="0" cy="0" r="15" fill="#1e3a5f"/>
+    <circle cx="0" cy="0" r="10" fill="white"/>
+    <circle cx="0" cy="0" r="6" fill="#1e3a5f"/>
+  </g>
+</svg>

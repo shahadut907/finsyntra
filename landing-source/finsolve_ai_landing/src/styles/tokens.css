@@ -1,0 +1,83 @@
+/* ============================================================
+   FinSyntra design tokens
+   Palette: deep indigo base, electric blue → violet → cyan aurora,
+   emerald reserved for financial/data, magenta for highlights.
+   ============================================================ */
+
+:root {
+  /* Base surfaces — never pure black */
+  --bg-0: #070b1c;
+  --bg-1: #0a1026;
+  --bg-2: #0e1630;
+
+  /* Text */
+  --ink-1: #eef2ff; /* headings */
+  --ink-2: #c3cbe8; /* body */
+  --ink-3: #8e9ac4; /* muted */
+  --ink-4: #6b76a3; /* faint labels — large sizes only */
+
+  /* Spectral accents */
+  --blue: #4f8dff;
+  --blue-soft: #7db0ff;
+  --indigo: #6366f1;
+  --violet: #a78bfa;
+  --cyan: #38d6f5;
+  --aqua: #2dd4bf;
+  --emerald: #34d399;
+  --magenta: #f0a6e8;
+
+  /* Spectral gradient (signature edge + accents) */
+  --spectrum: linear-gradient(
+    100deg,
+    var(--cyan) 0%,
+    var(--blue) 30%,
+    var(--violet) 60%,
+    var(--magenta) 85%,
+    var(--aqua) 100%
+  );
+  --spectrum-soft: linear-gradient(
+    100deg,
+    rgba(56, 214, 245, 0.55),
+    rgba(79, 141, 255, 0.55),
+    rgba(167, 139, 250, 0.55),
+    rgba(46, 212, 191, 0.55)
+  );
+
+  /* Glass */
+  --glass-bg: rgba(148, 173, 255, 0.055);
+  --glass-bg-strong: rgba(148, 173, 255, 0.09);
+  --glass-bg-deep: rgba(10, 16, 38, 0.55);
+  --glass-border: rgba(160, 180, 255, 0.16);
+  --glass-border-strong: rgba(170, 190, 255, 0.28);
+  --glass-highlight: rgba(255, 255, 255, 0.09);
+
+  /* Depth */
+  --shadow-1: 0 8px 32px rgba(4, 8, 24, 0.45);
+  --shadow-2: 0 24px 80px rgba(3, 6, 20, 0.6);
+  --glow-blue: 0 0 64px rgba(79, 141, 255, 0.22);
+  --glow-violet: 0 0 72px rgba(139, 122, 246, 0.2);
+
+  /* Radii */
+  --r-sm: 10px;
+  --r-md: 16px;
+  --r-lg: 22px;
+  --r-xl: 30px;
+
+  /* Type */
+  --font-display: "Sora", "Inter", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Code", monospace;
+  --font-bengali: "Noto Sans Bengali", "Inter", sans-serif;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-fast: 0.24s;
+  --dur-med: 0.5s;
+  --dur-slow: 0.9s;
+
+  /* Layout */
+  --container: 1200px;
+  --nav-h: 76px;
+  --section-gap: clamp(88px, 12vw, 148px);
+}

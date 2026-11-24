@@ -1,0 +1,5 @@
+employee_band,department,headcount,attrition_percent
+Associate,Operations,18,5
+Specialist,Engineering,24,4
+Manager,Finance,6,3
+Director,People Operations,3,0

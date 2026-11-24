@@ -1,0 +1,53 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      ENV: ${ENV:-staging}
+      DEBUG: "false"
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY is required}
+      LLM_PROVIDER: groq
+      GROQ_API_KEY: ${GROQ_API_KEY:?GROQ_API_KEY is required}
+      GROQ_MODEL: ${GROQ_MODEL:?GROQ_MODEL is required}
+      GROQ_BASE_URL: ${GROQ_BASE_URL:-https://api.groq.com/openai/v1}
+      GROQ_TIMEOUT_SECONDS: ${GROQ_TIMEOUT_SECONDS:-20}
+      DATABASE_URL: sqlite:////app/data/finsolve.db
+      VECTOR_DB_PATH: /app/chroma
+      RAW_DOCUMENTS_PATH: /app/uploads
+      PUBLIC_DEMO_ENABLED: "true"
+      DEMO_TENANT_ID: tenant_demo
+      DEMO_DOCUMENTS_PATH: /app/src/data/demo_corpus
+      PUBLIC_DEMO_CHAT_RATE_LIMIT_PER_MINUTE: ${PUBLIC_DEMO_CHAT_RATE_LIMIT_PER_MINUTE:-10}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-["http://localhost:8080"]}
+    expose:
+      - "8000"
+    volumes:
+      - finsolve_db:/app/data
+      - finsolve_chroma:/app/chroma
+      - finsolve_uploads:/app/uploads
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.production
+      args:
+        REACT_APP_PUBLIC_DEMO_ENABLED: "true"
+    ports:
+      - "8080:8080"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  finsolve_db:
+  finsolve_chroma:
+  finsolve_uploads:
