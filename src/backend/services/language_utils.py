@@ -93,6 +93,16 @@ def prepare_retrieval_query(text: str, language: str) -> str:
         return text
     return f"{text} {english_retrieval_hints(text)}".strip()
 
+def _bangla_phrase_matches(phrase: str, text_lower: str) -> bool:
+    """Match a Bangla cue; romanised cues must be whole words.
+
+    Plain substring matching classified English questions as Bangla because
+    short romanised cues such as "ki" occur inside ordinary words ("working").
+    """
+    if phrase.isascii():
+        return re.search(r"(?<![a-z0-9])" + re.escape(phrase) + r"(?![a-z0-9])", text_lower) is not None
+    return phrase in text_lower or text_lower in phrase
+
 def detect_language(text: str, session_id: str = None) -> Tuple[str, float]:
     """
     Detect the language of a given text with improved pattern recognition.
@@ -131,7 +141,7 @@ def detect_language(text: str, session_id: str = None) -> Tuple[str, float]:
     
     # Check for Bangla phrases
     for phrase in LANGUAGE_PHRASES.get('bn', []):
-        if phrase in text_lower or text_lower in phrase:
+        if _bangla_phrase_matches(phrase, text_lower):
             if session_id:
                 SESSION_LANGUAGES[session_id] = 'bn'
             return 'bn', 0.9

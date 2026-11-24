@@ -14,8 +14,8 @@
       "destination": "https://finsyntra-demo-api.onrender.com/auth/:path*"
     },
     {
-      "source": "/health/:path*",
-      "destination": "https://finsyntra-demo-api.onrender.com/health/:path*"
+      "source": "/health",
+      "destination": "https://finsyntra-demo-api.onrender.com/health"
     },
     {
       "source": "/app/:path*",
