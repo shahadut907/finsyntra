@@ -32,6 +32,26 @@ from conftest import (  # noqa: E402
 )
 
 
+@pytest.fixture(autouse=True)
+def _reset_demo_usage_state():
+    """Daily demo counters live in the shared per-process test database; every
+    test starts from a clean allowance and with no active chat leases."""
+    def _clear():
+        try:
+            from sqlalchemy import inspect as _inspect
+            from src.backend.database import database
+            from src.backend.services import demo_usage
+            demo_usage.reset_for_tests()
+            with database.engine.begin() as conn:
+                if "demo_usage_counters" in _inspect(conn).get_table_names():
+                    conn.execute(database.DemoUsageCounter.__table__.delete())
+        except Exception:
+            pass
+    _clear()
+    yield
+    _clear()
+
+
 @pytest.fixture(scope="session")
 def event_loop():
     """Create event loop for async tests."""

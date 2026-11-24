@@ -3,6 +3,7 @@ import { ArrowDown, MoreHorizontal, FileDown, MicOff } from 'lucide-react';
 import ChatWelcome from './chat/ChatWelcome';
 import ChatMessage, { ThinkingMessage } from './chat/ChatMessage';
 import ChatComposer from './chat/ChatComposer';
+import DemoUsageMeter from './chat/DemoUsageMeter';
 import { ComposerTools, DictationButton, ComposerStatus } from './chat/ComposerControls';
 import useModelCatalog from '../hooks/useModelCatalog';
 import useDictation from '../hooks/useDictation';
@@ -304,6 +305,8 @@ const DarkChatInterface = ({
       <div className="fs-sr-only" role="status" aria-live="polite">
         {isStreaming ? 'FinSyntra AI is responding' : ''}
       </div>
+
+      <DemoUsageMeter enabled={Boolean(user?.is_public_demo)} />
 
       <ChatComposer
         value={inputValue}

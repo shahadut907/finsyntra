@@ -19,6 +19,7 @@ from datetime import datetime
 
 from src.backend.services.rag_service import RAGService
 from src.backend.services.language_utils import detect_language
+from src.backend.services import demo_usage
 from src.config.roles import Role
 from src.config.settings import settings
 from src.backend.database.database import (
@@ -36,6 +37,42 @@ from src.backend.services.model_catalog import (
 
 # Initialize router
 router = APIRouter()
+
+
+def _demo_refusal(request: Request, exc: "demo_usage.DemoLimitError", usage: Optional[dict] = None):
+    """Friendly refusal of a public-demo message.
+
+    EventSource (the UI's transport) cannot read HTTP status codes, so a GET
+    stream is answered with a normal SSE stream carrying one ``error`` event the
+    UI already renders. API clients (POST) get a conventional 429.
+    """
+    payload = {"code": exc.code.upper(), "message": exc.message, "retry_after": exc.retry_after}
+    if request.method == "GET":
+        event = json.dumps({'type': 'error', 'code': payload['code'], 'message': exc.message})
+        body = "data: " + event + "\n\n" + "data: [DONE]\n\n"
+        return StreamingResponse(iter([body]), media_type="text/event-stream",
+                                 headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+    headers = {"Retry-After": str(exc.retry_after)} if exc.retry_after else None
+    return JSONResponse(status_code=429, content={"detail": payload}, headers=headers)
+
+
+async def _leased_stream(inner, lease):
+    """Hold the demo lease for the life of the stream; always release it."""
+    lease.activate()  # provider tokens are charged to the public or admin pool
+    try:
+        async for chunk in inner:
+            if isinstance(chunk, str) and chunk.startswith('data: {"type": "complete"'):
+                try:
+                    done = json.loads(chunk[6:])
+                    if not done.get("success") and done.get("generation_status") != "ok":
+                        # The visitor got no answer (model busy/unavailable):
+                        # do not charge the failed attempt to their allowance.
+                        await asyncio.to_thread(lease.refund_once)
+                except ValueError:
+                    pass
+            yield chunk
+    finally:
+        lease.release()
 logger = logging.getLogger(__name__)
 
 
@@ -724,6 +761,16 @@ async def unified_chat_stream_handler(
             else f"user_{user_id}"
         )
 
+    # Public-demo daily/concurrency protection: charged once per accepted
+    # message, before any retrieval or model call.
+    lease = None
+    if (current_user.get("is_public_demo") or demo_usage.is_super_admin(current_user)) and settings.public_demo_enabled:
+        try:
+            lease = await asyncio.to_thread(demo_usage.admit, request, visitor_session_id, current_user)
+        except demo_usage.DemoLimitError as exc:
+            logger.info("DEMO_LIMIT_REFUSED code=%s", exc.code)
+            return _demo_refusal(request, exc)
+
     # Reserve/authorize before response headers are sent. Any cross-tenant or
     # same-tenant collision is rejected before RAG and before the SSE stream.
     try:
@@ -734,13 +781,21 @@ async def unified_chat_stream_handler(
             visitor_session_id=visitor_session_id,
         )
     except ConversationNotFoundError as exc:
+        if lease:
+            await asyncio.to_thread(lease.refund_once)
+            lease.release()
         raise HTTPException(status_code=404, detail="Conversation not found") from exc
     except ConversationForbiddenError as exc:
+        if lease:
+            await asyncio.to_thread(lease.refund_once)
+            lease.release()
         raise HTTPException(status_code=403, detail="Forbidden") from exc
+    except BaseException:
+        if lease:
+            lease.release()
+        raise
 
-    # Stream response
-    return StreamingResponse(
-        generate_sse_response(
+    stream = generate_sse_response(
             query=query.strip(),
             user_role=user_role,
             user_name=user_name,
@@ -754,7 +809,9 @@ async def unified_chat_stream_handler(
             namespace='company_docs',
             visitor_session_id=visitor_session_id,
             generation=generation,
-        ),
+    )
+    return StreamingResponse(
+        _leased_stream(stream, lease) if lease else stream,
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",

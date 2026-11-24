@@ -2414,3 +2414,86 @@
         opacity: 0.66;
     }
 }
+
+/* ------------------------------------------------------------
+   Public-demo daily usage indicator (beside the composer)
+   ------------------------------------------------------------ */
+.fs-usage {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    margin: 0 0 6px;
+    font-family: var(--fs-font-sans);
+}
+
+.fs-usage-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 10px;
+    border: 1px solid var(--fs-border-soft);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--fs-text-3);
+    font: inherit;
+    font-size: 0.75rem;
+    line-height: 1.4;
+    cursor: pointer;
+    transition: color var(--fs-t-fast), border-color var(--fs-t-fast), background var(--fs-t-fast);
+}
+
+.fs-usage-btn:hover,
+.fs-usage-btn:focus-visible {
+    color: var(--fs-text-2);
+    border-color: var(--fs-border);
+    background: var(--fs-hover);
+}
+
+.fs-usage-bar {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 4px;
+    border-radius: 999px;
+    background: var(--fs-fill);
+    overflow: hidden;
+}
+
+.fs-usage-bar > span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--fs-accent);
+    transition: width 240ms ease;
+}
+
+.fs-usage--low .fs-usage-bar > span { background: var(--fs-accent-2); }
+.fs-usage--out .fs-usage-btn { color: var(--fs-danger); border-color: var(--fs-danger); }
+.fs-usage--out .fs-usage-bar > span { background: var(--fs-danger); }
+
+.fs-usage-panel {
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 5;
+    min-width: 240px;
+    padding: 10px 14px;
+    border: 1px solid var(--fs-border);
+    border-radius: 12px;
+    background: var(--fs-surface-raised);
+    box-shadow: var(--fs-shadow-md);
+    color: var(--fs-text-2);
+    font-size: 0.8rem;
+    line-height: 1.5;
+}
+
+.fs-usage-panel dl { margin: 0; }
+.fs-usage-panel dl > div { display: flex; justify-content: space-between; gap: 16px; }
+.fs-usage-panel dt { color: var(--fs-text-3); }
+.fs-usage-panel dd { margin: 0; color: var(--fs-text); }
+.fs-usage-panel p { margin: 8px 0 0; color: var(--fs-text-3); }
+
+@media (max-width: 480px) {
+    .fs-usage-bar { display: none; }
+}

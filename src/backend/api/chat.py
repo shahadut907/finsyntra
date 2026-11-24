@@ -18,6 +18,7 @@ from src.backend.database.database import (
     ConversationNotFoundError,
 )
 from src.backend.services.language_utils import detect_language
+from src.backend.services import demo_usage
 from src.config.roles import Role
 from src.backend.api.auth_deps import get_current_user, require_visitor_session_for_demo
 from src.config.settings import settings
@@ -94,8 +95,20 @@ async def chat(request: ChatRequest, user: Dict[str, Any] = Depends(get_current_
         rag_service = RAGService()
     
     # Process the request
+    lease = None
     try:
         visitor_session_id = require_visitor_session_for_demo(user, http_request)
+        if (user.get("is_public_demo") or demo_usage.is_super_admin(user)) and settings.public_demo_enabled:
+            try:
+                lease = await asyncio.to_thread(demo_usage.admit, http_request, visitor_session_id, user)
+                lease.activate()
+            except demo_usage.DemoLimitError as limit:
+                raise HTTPException(
+                    status_code=429,
+                    detail={"code": limit.code.upper(), "message": limit.message,
+                            "retry_after": limit.retry_after},
+                    headers={"Retry-After": str(limit.retry_after)} if limit.retry_after else None,
+                )
 
         # SECURITY: Role derived ONLY from authenticated user, never request body
         try:
@@ -211,3 +224,6 @@ async def chat(request: ChatRequest, user: Dict[str, Any] = Depends(get_current_
             status_code=500,
             detail="An error occurred while processing your request"
         )
+    finally:
+        if lease:
+            lease.release()

@@ -4,8 +4,15 @@
 // No tokens are read from localStorage.
 import React from 'react';
 import { apiFetch, ensureAuthenticatedSession } from '../lib/apiClient';
+
 import { CHAT_STREAM_URL, ENABLE_STREAMING, debugChatLog, redactForLog } from '../config/chat';
 import { debugError } from '../config/env';
+
+const notifyUsageChanged = () => {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event('finsyntra:demo-usage-refresh'));
+  }
+};
 
 export class ChatService {
   constructor() {
@@ -180,6 +187,7 @@ export class ChatService {
           settled = true;
           this.currentAbort = null;
           this.closeEventSource();
+          notifyUsageChanged();
           onComplete?.(result);
           resolve(result);
         };
@@ -190,6 +198,7 @@ export class ChatService {
           this.currentAbort = null;
           this.closeEventSource();
           error.partialResponse = fullResponse;
+          notifyUsageChanged();
           onError?.(error);
           reject(error);
         };

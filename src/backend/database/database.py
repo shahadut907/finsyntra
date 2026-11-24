@@ -73,6 +73,32 @@ class User(Base):
     last_login = Column(DateTime(timezone=True), nullable=True)
     meta = Column("metadata", JSON, default=dict)
 
+class DemoUsageCounter(Base):
+    """Daily public-demo usage counters (one row per scope/subject/UTC day).
+
+    ``subject`` is an HMAC of the visitor id or client IP, never the raw value;
+    the global scope uses the fixed subject "all". Increments are conditional
+    upserts so limits hold under concurrency.
+    """
+    __tablename__ = "demo_usage_counters"
+
+    scope = Column(String(16), primary_key=True)
+    subject = Column(String(64), primary_key=True)
+    day = Column(String(10), primary_key=True)
+    count = Column(Integer, nullable=False, default=0)
+    tokens = Column(Integer, nullable=False, default=0)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now())
+
+class DemoRuntimeSetting(Base):
+    """Super-Admin runtime overrides for the public-demo limits (key/value)."""
+    __tablename__ = "demo_runtime_settings"
+
+    key = Column(String(48), primary_key=True)
+    value = Column(Text, nullable=False)
+    updated_by = Column(String, nullable=True)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
 class ChatSession(Base):
     __tablename__ = "chat_sessions"
     __table_args__ = (

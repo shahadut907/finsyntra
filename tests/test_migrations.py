@@ -13,7 +13,7 @@ import pytest
 from conftest import DEV_DB_PATH, is_dev_path
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-HEAD_REVISION = "0005_visitor_session_isolation"
+HEAD_REVISION = "0006_demo_usage_counters"
 
 
 def alembic(db_path, *args):

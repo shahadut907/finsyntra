@@ -164,6 +164,17 @@ class OllamaProvider(LLMProvider):
             return False
 
 
+def _record_usage(payload) -> None:
+    """Feed actual Groq token usage into the public-demo daily budget."""
+    try:
+        total = int(((payload or {}).get("usage") or {}).get("total_tokens") or 0)
+        if total:
+            from src.backend.services import demo_usage
+            demo_usage.record_tokens(total)
+    except Exception:  # accounting must never break an answer
+        logger.warning("DEMO_USAGE_TOKEN_RECORD_FAILED", exc_info=True)
+
+
 @dataclass
 class GroqProvider(LLMProvider):
     api_key: str
@@ -237,6 +248,7 @@ class GroqProvider(LLMProvider):
                 payload = response.json()
                 choice = payload["choices"][0]
                 text = _strip_private_reasoning(choice["message"].get("content") or "")
+                _record_usage(payload)
             except (ValueError, KeyError, IndexError, TypeError, AttributeError) as exc:
                 logger.error("LLM_MALFORMED_RESPONSE provider=groq model=%s", model, exc_info=True)
                 raise LLMGenerationError("malformed", "The language model returned an unreadable response.") from exc

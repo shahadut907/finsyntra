@@ -99,6 +99,19 @@ async def get_current_admin_user(request: Request) -> Dict[str, Any]:
     return user
 
 
+async def get_super_admin_user(request: Request) -> Dict[str, Any]:
+    """Backend-only gate for the public-demo controls: an authenticated private
+    admin account on the configured allowlist. No IP allowlist, no bypass."""
+    user = await get_current_admin_user(request)
+    from src.backend.services.demo_usage import is_super_admin
+    if not is_super_admin(user):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={"code": "SUPER_ADMIN_REQUIRED", "message": "Super Administrator access required"},
+        )
+    return user
+
+
 def require_non_demo_mutation(user: Dict[str, Any]) -> None:
     """Block shared-state mutations for authoritative public-demo identities."""
     if user.get("is_public_demo"):

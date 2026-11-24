@@ -64,7 +64,8 @@ class SecurityValidator:
 
 
 def _client_key(request: Request, bucket: str) -> str:
-    address = request.client.host if request.client else "unknown"
+    from src.backend.services.demo_usage import resolve_client_ip
+    address = resolve_client_ip(request)
     return hashlib.sha256(f"{bucket}:{address}".encode()).hexdigest()
 
 

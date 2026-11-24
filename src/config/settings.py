@@ -154,7 +154,31 @@ class Settings(BaseSettings):
     rate_limit_per_minute: int = 60
     login_rate_limit_per_minute: int = 5
     refresh_rate_limit_per_minute: int = 10
-    public_demo_chat_rate_limit_per_minute: int = 10
+    public_demo_chat_rate_limit_per_minute: int = 3
+
+    # Daily public-demo usage and abuse protection (Neon-persisted counters,
+    # UTC day). Applies only to public-demo identities; private accounts are
+    # exempt. The global/token budgets protect the shared Groq free tier.
+    demo_visitor_daily_limit: int = 10
+    demo_ip_daily_limit: int = 20
+    demo_global_daily_limit: int = 60
+    # Conservative share of Groq's free-tier tokens/day for the chat model;
+    # verify against the Groq console limits for the configured model.
+    demo_daily_token_budget: int = 150000
+    demo_global_concurrency: int = 2
+    # Number of reverse proxies that append to X-Forwarded-For *after* the
+    # client address (Render's edge appends the Vercel peer: 1).
+    trusted_proxy_hops: int = 1
+    # Authenticated Super Admin (private account, never a public-demo persona):
+    # exempt from the visitor/IP/global message limits and the pause switch, may
+    # tune the limits at runtime, and draws on a token reserve that public
+    # visitors can never spend. Identified by email (a user's id IS the email
+    # and cannot be changed); never by IP address. JSON list, empty = none.
+    super_admin_emails: List[str] = []
+    demo_super_admin_token_reserve: int = 30000
+    # Hard ceiling for any runtime change to the daily token budget; keep at or
+    # below the real Groq tokens-per-day quota of the configured model.
+    demo_daily_token_budget_ceiling: int = 200000
     # Demo-login is credentialless (no brute-force surface) but recruiters
     # switch personas repeatedly during a demo; the strict /auth/login limit
     # must not apply to it. Separate bucket so it never consumes the real

@@ -20,6 +20,7 @@ from src.backend.api.document_upload import router as document_upload_router
 from src.backend.api.auth import router as auth_router
 from src.backend.api.conversations import router as conversations_router
 from src.backend.api.knowledge import router as knowledge_router
+from src.backend.api.demo_usage import router as demo_usage_router
 from src.backend.api.auth_deps import get_current_admin_user
 from src.backend.middleware.security import setup_security_middleware
 from src.config.settings import settings
@@ -231,6 +232,7 @@ app.include_router(admin_router, prefix="/api", tags=["Admin"])
 app.include_router(document_upload_router, prefix="/api", tags=["Documents"])
 app.include_router(conversations_router, prefix="/api", tags=["Conversations"])
 app.include_router(knowledge_router, prefix="/api", tags=["Knowledge"])
+app.include_router(demo_usage_router, prefix="/api", tags=["Demo usage"])
 app.include_router(auth_router, tags=["Auth"])
 
 
