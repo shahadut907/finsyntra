@@ -56,6 +56,11 @@ def _demo_refusal(request: Request, exc: "demo_usage.DemoLimitError", usage: Opt
     return JSONResponse(status_code=429, content={"detail": payload}, headers=headers)
 
 
+# Outcomes where the visitor received no model answer because something failed
+# (not "skipped"/small talk, which are answered without a model call).
+_REFUNDABLE_STATUSES = {"rate_limited", "unavailable", "timeout", "malformed", "error", "unknown"}
+
+
 async def _leased_stream(inner, lease):
     """Hold the demo lease for the life of the stream; always release it."""
     lease.activate()  # provider tokens are charged to the public or admin pool
@@ -64,7 +69,7 @@ async def _leased_stream(inner, lease):
             if isinstance(chunk, str) and chunk.startswith('data: {"type": "complete"'):
                 try:
                     done = json.loads(chunk[6:])
-                    if not done.get("success") and done.get("generation_status") != "ok":
+                    if done.get("generation_status") in _REFUNDABLE_STATUSES:
                         # The visitor got no answer (model busy/unavailable):
                         # do not charge the failed attempt to their allowance.
                         await asyncio.to_thread(lease.refund_once)

@@ -391,3 +391,54 @@ async def test_super_admin_resets_counters_but_never_tokens(demo_app, super_admi
         assert ov["messages"]["used"] == 0 and ov["tokens"]["public_used"] == 77
         assert (await c.post("/api/admin/demo-usage/reset", json={"scope": "tokens"}, headers=h)).status_code == 422
         assert "vsid" not in str(ov) and "subject" not in str(ov)
+
+
+# -- stream lease: release and refund ------------------------------------------
+
+async def _drain(chunks, lease):
+    from src.backend.api.chat_stream import _leased_stream
+
+    async def inner():
+        for c in chunks:
+            yield c
+
+    return [c async for c in _leased_stream(inner(), lease)]
+
+
+def _complete(**kw):
+    import json
+    return "data: " + json.dumps({"type": "complete", **kw}) + "\n\n"
+
+
+@pytest.mark.asyncio
+async def test_failed_generation_is_refunded_and_slot_released(db):
+    lease = demo_usage.admit(_Req(), "vsid-r")
+    assert demo_usage.active_count() == 1
+    await _drain([_complete(success=False, generation_status="rate_limited")], lease)
+    assert demo_usage.active_count() == 0
+    assert _counts(db)[("visitor", demo_usage.visitor_key("vsid-r")[:6])] == 0
+
+
+@pytest.mark.asyncio
+async def test_answered_and_small_talk_messages_stay_charged(db):
+    for status in ({"success": True, "generation_status": "ok"}, {"streaming_mode": "small_talk"},
+                   {"success": False, "generation_status": "skipped"}):
+        demo_usage.reset_for_tests()
+        lease = demo_usage.admit(_Req(), "vsid-k")
+        await _drain([_complete(**status)], lease)
+    assert _counts(db)[("visitor", demo_usage.visitor_key("vsid-k")[:6])] == 3
+
+
+@pytest.mark.asyncio
+async def test_slot_released_when_the_client_disconnects_mid_stream(db):
+    from src.backend.api.chat_stream import _leased_stream
+    lease = demo_usage.admit(_Req(), "vsid-d")
+
+    async def inner():
+        yield "data: {}\n\n"
+        yield "data: {}\n\n"
+
+    gen = _leased_stream(inner(), lease)
+    await gen.__anext__()
+    await gen.aclose()
+    assert demo_usage.active_count() == 0
