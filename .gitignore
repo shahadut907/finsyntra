@@ -129,3 +129,5 @@ NUL
 
 # Local assistant/tool permissions (per-developer, never shared)
 .claude/settings.local.json
+
+.vercel
