@@ -46,7 +46,7 @@ logger = logging.getLogger(__name__)
 _ACTIVE_TTL_SECONDS = 180.0  # a leaked lease can never block a visitor longer
 _PRUNE_AFTER_DAYS = 14
 _CONFIG_TTL_SECONDS = 5.0
-_chain_logged = False
+_chain_logged = 0
 
 # Who the current generation is charged to ("public" unless a Super Admin).
 ACTOR: contextvars.ContextVar[str] = contextvars.ContextVar("demo_usage_actor", default="public")
@@ -77,9 +77,10 @@ def resolve_client_ip(request: Request) -> str:
     """
     global _chain_logged
     chain = [p.strip() for p in request.headers.get("x-forwarded-for", "").split(",") if p.strip()]
-    if not _chain_logged and chain:
-        _chain_logged = True
-        logger.info("CLIENT_IP_CHAIN entries=%d trusted_hops=%d", len(chain), settings.trusted_proxy_hops)
+    if chain and _chain_logged < 4:
+        _chain_logged += 1
+        masked = [".".join(p.split(".")[:3] + ["x"]) if p.count(".") == 3 else "ipv6" for p in chain]
+        logger.info("CLIENT_IP_CHAIN entries=%d trusted_hops=%d masked=%s", len(chain), settings.trusted_proxy_hops, masked)
     hops = max(int(settings.trusted_proxy_hops), 0)
     if chain and hops:
         return chain[max(len(chain) - 1 - hops, 0)][:64]
