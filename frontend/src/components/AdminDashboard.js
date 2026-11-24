@@ -8,9 +8,11 @@ import {
   Settings, Lock, Unlock,
   ShieldCheck, AlertTriangle, Monitor, Brain,
   MessageSquare, Upload, Server, Wifi, WifiOff,
-  LogOut
+  LogOut, Gauge
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import DocumentViewerModal from './DocumentViewerModal';
+import UsageControls from './UsageControls';
 import ConversationMemory from './ConversationMemory';
 import useModalDialogs from '../hooks/useModalDialogs';
 
@@ -23,6 +25,7 @@ const errorDetail = (body, fallback) => {
 
 const AdminDashboard = ({ isOpen, onClose, darkMode, user, apiCall, addNotification, onLogout }) => {
   const isPublicDemo = Boolean(user?.is_public_demo);
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -91,7 +94,11 @@ const AdminDashboard = ({ isOpen, onClose, darkMode, user, apiCall, addNotificat
     { id: 'analytics', label: 'Analytics', icon: TrendingUp, color: 'pink' },
     { id: 'memory', label: 'Memory', icon: Brain, color: 'purple' },
     { id: 'audit', label: 'Audit Logs', icon: Shield, color: 'red' },
-    { id: 'system', label: 'System', icon: Settings, color: 'gray' }
+    { id: 'system', label: 'System', icon: Settings, color: 'gray' },
+    // Super Admin only (display hint; the API enforces it).
+    ...(user?.is_super_admin ? [{ id: 'usage', label: 'Usage & Controls', icon: Gauge, color: 'teal' },
+      // Reuses the existing chat page (history, streaming, citations); no second interface.
+      { id: 'chat', label: 'AI Chat', icon: MessageSquare, color: 'blue', to: '/chat' }] : [])
   ];
 
   // FIXED: Department and role options
@@ -1655,6 +1662,9 @@ const AdminDashboard = ({ isOpen, onClose, darkMode, user, apiCall, addNotificat
       case 'audit': return renderAuditLogs();
       case 'memory': return renderMemory();
       case 'system': return renderSystem();
+      case 'usage': return user?.is_super_admin
+        ? <UsageControls apiCall={apiCall} addNotification={addNotification} />
+        : renderOverview();
       default: return renderOverview();
     }
   };
@@ -2051,7 +2061,7 @@ const AdminDashboard = ({ isOpen, onClose, darkMode, user, apiCall, addNotificat
               {tabs.map(tab => (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => (tab.to ? navigate(tab.to) : setActiveTab(tab.id))}
                   className={`w-full flex items-center gap-3 px-2 sm:px-3 py-2.5 sm:py-3 rounded-xl text-left ${activeTab === tab.id
                     ? 'glass-nav-item-active'
                     : 'glass-nav-item'

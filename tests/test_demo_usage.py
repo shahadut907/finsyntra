@@ -442,3 +442,99 @@ async def test_slot_released_when_the_client_disconnects_mid_stream(db):
     await gen.__anext__()
     await gen.aclose()
     assert demo_usage.active_count() == 0
+
+
+# -- forwarded-header spoofing and the edge secret -----------------------------------
+
+EDGE = "e" * 40
+
+
+def test_direct_requests_cannot_forge_their_address(monkeypatch):
+    monkeypatch.setattr(settings, "trusted_proxy_hops", 2)       # cloudflare + internal
+    monkeypatch.setattr(settings, "edge_proxy_secret", EDGE)
+    # direct: client-supplied leading entries are ignored, the peer our proxies saw wins
+    assert demo_usage.resolve_client_ip(_Req("6.6.6.6, 203.0.113.5, 172.70.0.1, 10.0.0.9")) == "203.0.113.5"
+    assert demo_usage.resolve_client_ip(_Req("1.2.3.4, 5.6.7.8, 203.0.113.5, 172.70.0.1, 10.0.0.9")) == "203.0.113.5"
+    assert demo_usage.resolve_client_ip(_Req("203.0.113.5, 172.70.0.1, 10.0.0.9")) == "203.0.113.5"
+
+
+def test_edge_secret_unlocks_the_vercel_hop_only_when_correct(monkeypatch):
+    monkeypatch.setattr(settings, "trusted_proxy_hops", 2)
+    monkeypatch.setattr(settings, "edge_proxy_secret", EDGE)
+    chain = "198.51.100.7, 76.76.21.9, 172.70.0.1, 10.0.0.9"   # client, vercel egress, cloudflare, internal
+
+    class R(_Req):
+        def __init__(self, secret):
+            super().__init__(chain)
+            if secret is not None:
+                self.headers["x-finsyntra-edge"] = secret
+
+    assert demo_usage.resolve_client_ip(R(EDGE)) == "198.51.100.7"
+    assert demo_usage.resolve_client_ip(R("wrong" * 10)) == "76.76.21.9"   # treated as direct
+    assert demo_usage.resolve_client_ip(R(None)) == "76.76.21.9"
+    monkeypatch.setattr(settings, "edge_proxy_secret", "")
+    assert demo_usage.resolve_client_ip(R("")) == "76.76.21.9"            # unset secret never matches
+    monkeypatch.setattr(settings, "edge_proxy_secret", "short")
+    assert not demo_usage.edge_verified(R("short"))
+
+
+@pytest.mark.asyncio
+async def test_forging_forwarded_for_does_not_dodge_the_ip_limit(demo_app, monkeypatch):
+    monkeypatch.setattr(settings, "trusted_proxy_hops", 2)
+    monkeypatch.setattr(settings, "demo_ip_daily_limit", 1)
+    tail = "203.0.113.50, 172.70.0.1, 10.0.0.9"
+    for i, ok in enumerate((True, False, False)):
+        async with _client() as c:
+            h = await _login(c)
+            h["X-Forwarded-For"] = f"9.9.9.{i}, {tail}"            # a new forged address each time
+            r = await c.post("/api/chat", json={"message": "leave days"}, headers=h)
+            assert (r.status_code == 200) is ok, (i, r.text)
+            if not ok:
+                assert r.json()["detail"]["code"] == "IP_LIMIT"
+
+
+# -- one-time Super Admin bootstrap --------------------------------------------------
+
+BOOT = "b" * 40
+
+
+@pytest.fixture
+def bootstrap(monkeypatch):
+    monkeypatch.setattr(settings, "super_admin_emails", ["new.owner@example.test"])
+    monkeypatch.setattr(settings, "super_admin_bootstrap_token", BOOT)
+    rate_limiter.reset()
+    from src.backend.database.database import SessionLocal, User
+    db = SessionLocal()
+    db.query(User).filter(User.email == "new.owner@example.test").delete()
+    db.commit(); db.close()
+
+
+@pytest.mark.asyncio
+async def test_bootstrap_creates_a_private_account_that_can_log_in(bootstrap):
+    body = {"email": "New.Owner@example.test", "password": "correct horse battery 1"}
+    async with _client() as c:
+        assert (await c.post("/auth/bootstrap-super-admin", json=body)).status_code == 403          # no token
+        assert (await c.post("/auth/bootstrap-super-admin", json=body, headers={"X-Bootstrap-Token": "x" * 40})).status_code == 403
+        bad = {**body, "email": "intruder@example.test"}
+        assert (await c.post("/auth/bootstrap-super-admin", json=bad, headers={"X-Bootstrap-Token": BOOT})).status_code == 403
+        short = {**body, "password": "short"}
+        assert (await c.post("/auth/bootstrap-super-admin", json=short, headers={"X-Bootstrap-Token": BOOT})).status_code == 422
+        r = await c.post("/auth/bootstrap-super-admin", json=body, headers={"X-Bootstrap-Token": BOOT})
+        assert r.status_code == 200 and r.json() == {"created": True}
+        rate_limiter.reset()
+        assert (await c.post("/auth/bootstrap-super-admin", json=body, headers={"X-Bootstrap-Token": BOOT})).status_code == 409
+        login = await c.post("/auth/login", json={"email": "new.owner@example.test", "password": body["password"]})
+        assert login.status_code == 200
+        assert login.json()["user"]["is_super_admin"] is True and login.json()["user"]["is_public_demo"] is False
+        assert (await c.get("/api/admin/demo-usage")).status_code == 200
+        assert (await c.post("/auth/login", json={"email": "new.owner@example.test", "password": "wrong password!!"})).status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_bootstrap_is_disabled_without_a_token(monkeypatch):
+    monkeypatch.setattr(settings, "super_admin_bootstrap_token", "")
+    rate_limiter.reset()
+    async with _client() as c:
+        r = await c.post("/auth/bootstrap-super-admin", json={"email": "a@b.cc", "password": "x" * 14},
+                         headers={"X-Bootstrap-Token": ""})
+        assert r.status_code == 404

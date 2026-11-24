@@ -98,7 +98,7 @@ async def security_middleware(request: Request, call_next):
     content_type = request.headers.get("content-type", "").split(";", 1)[0].strip().lower()
     if content_type == "application/x-www-form-urlencoded":
         return JSONResponse(status_code=415, content={"detail": "Unsupported media type"})
-    if path in {"/auth/login", "/auth/demo-login"}:
+    if path in {"/auth/login", "/auth/demo-login", "/auth/bootstrap-super-admin"}:
         if path == "/auth/demo-login" and settings.public_demo_enabled:
             limit = settings.public_demo_login_rate_limit_per_minute
             bucket = "public-demo-login"

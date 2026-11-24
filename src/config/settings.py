@@ -162,20 +162,28 @@ class Settings(BaseSettings):
     demo_visitor_daily_limit: int = 10
     demo_ip_daily_limit: int = 20
     demo_global_daily_limit: int = 60
-    # Conservative share of Groq's free-tier tokens/day for the chat model;
-    # verify against the Groq console limits for the configured model.
-    demo_daily_token_budget: int = 150000
+    # 90% of Groq's 200K tokens/day for openai/gpt-oss-20b (limits verified
+    # 2026-11-24: 1000 requests/day, 8000 tokens/minute, 200K tokens/day); the
+    # margin covers retried and translation calls.
+    demo_daily_token_budget: int = 180000
     demo_global_concurrency: int = 2
     # Number of reverse proxies that append to X-Forwarded-For *after* the
     # client address (Render's edge appends the Vercel peer: 1).
     trusted_proxy_hops: int = 1
+    # Shared secret the Vercel edge middleware attaches to proxied API requests
+    # (header X-Finsyntra-Edge). Only a request carrying it may use the one
+    # extra X-Forwarded-For hop (the Vercel egress) to recover the visitor's
+    # address; a direct request is attributed to the peer our own proxies saw.
+    edge_proxy_secret: str = ""
+    # One-time token enabling POST /auth/bootstrap-super-admin. Empty = disabled.
+    super_admin_bootstrap_token: str = ""
     # Authenticated Super Admin (private account, never a public-demo persona):
     # exempt from the visitor/IP/global message limits and the pause switch, may
     # tune the limits at runtime, and draws on a token reserve that public
     # visitors can never spend. Identified by email (a user's id IS the email
     # and cannot be changed); never by IP address. JSON list, empty = none.
     super_admin_emails: List[str] = []
-    demo_super_admin_token_reserve: int = 30000
+    demo_super_admin_token_reserve: int = 40000
     # Hard ceiling for any runtime change to the daily token budget; keep at or
     # below the real Groq tokens-per-day quota of the configured model.
     demo_daily_token_budget_ceiling: int = 200000

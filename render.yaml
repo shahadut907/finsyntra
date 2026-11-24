@@ -15,8 +15,10 @@ services:
       - { key: DEBUG, value: "false" }
       - { key: BYPASS_AUTH, value: "false" }
       - { key: PUBLIC_DEMO_ENABLED, value: "true" }
-      # Vercel egress, Cloudflare and Render each append one X-Forwarded-For entry.
-      - { key: TRUSTED_PROXY_HOPS, value: "3" }
+      # Cloudflare and Render's internal proxy each append one X-Forwarded-For
+      # entry. Requests proving (EDGE_PROXY_SECRET) they came through the Vercel
+      # middleware get one more hop (the Vercel egress) when resolving the client.
+      - { key: TRUSTED_PROXY_HOPS, value: "2" }
       - { key: EMBEDDINGS_PROVIDER, value: cloudflare }
       - { key: LLM_PROVIDER, value: groq }
       - { key: GROQ_MODEL, value: openai/gpt-oss-20b }
@@ -28,6 +30,8 @@ services:
       - { key: SECRET_KEY, sync: false }
       - { key: DATABASE_URL, sync: false }
       - { key: GROQ_API_KEY, sync: false }
+      - { key: EDGE_PROXY_SECRET, sync: false }
+      - { key: SUPER_ADMIN_EMAILS, sync: false }
       - { key: CLOUDFLARE_ACCOUNT_ID, sync: false }
       - { key: CLOUDFLARE_API_TOKEN, sync: false }
       - { key: ALLOWED_ORIGINS, sync: false }

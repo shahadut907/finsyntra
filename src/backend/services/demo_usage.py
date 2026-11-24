@@ -67,6 +67,12 @@ def is_super_admin(user: Dict[str, Any]) -> bool:
     return (user.get("email") or "").strip().lower() in allowed
 
 
+def edge_verified(request: Request) -> bool:
+    secret = settings.edge_proxy_secret or ""
+    presented = request.headers.get("x-finsyntra-edge", "")
+    return bool(secret) and len(secret) >= 32 and hmac.compare_digest(presented.encode(), secret.encode())
+
+
 def resolve_client_ip(request: Request) -> str:
     """Best-effort real client address behind trusted reverse proxies.
 
@@ -77,11 +83,17 @@ def resolve_client_ip(request: Request) -> str:
     """
     global _chain_logged
     chain = [p.strip() for p in request.headers.get("x-forwarded-for", "").split(",") if p.strip()]
-    if chain and _chain_logged < 4:
+    if chain and _chain_logged < 12:
         _chain_logged += 1
         masked = [".".join(p.split(".")[:3] + ["x"]) if p.count(".") == 3 else "ipv6" for p in chain]
-        logger.info("CLIENT_IP_CHAIN entries=%d trusted_hops=%d masked=%s", len(chain), settings.trusted_proxy_hops, masked)
+        logger.info("CLIENT_IP_CHAIN entries=%d trusted_hops=%d edge=%s masked=%s", len(chain), settings.trusted_proxy_hops, edge_verified(request), masked)
     hops = max(int(settings.trusted_proxy_hops), 0)
+    # Vercel's edge middleware proves a request came through it with a shared
+    # secret; only then is the extra (Vercel egress) hop trusted. Anything else
+    # is attributed to the address our own proxies saw, which a client cannot
+    # forge by sending its own X-Forwarded-For.
+    if edge_verified(request):
+        hops += 1
     if chain and hops:
         return chain[max(len(chain) - 1 - hops, 0)][:64]
     return (request.client.host if request.client else "unknown")[:64]

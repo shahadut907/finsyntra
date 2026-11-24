@@ -1,4 +1,5 @@
 """Authentication API backed by the authoritative SQLAlchemy user store."""
+import hmac
 import logging
 import secrets
 from datetime import datetime, timedelta, timezone
@@ -8,7 +9,9 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from pydantic import BaseModel
 
 from src.backend.api.auth_deps import get_current_user, resolve_active_user
-from src.backend.auth.authentication import create_access_token, verify_password, verify_token
+from src.backend.auth.authentication import (
+    create_access_token, get_password_hash, verify_password, verify_token,
+)
 from src.backend.database.database import RefreshToken, SessionLocal, User
 from src.config.settings import settings
 
@@ -21,6 +24,12 @@ class LoginRequest(BaseModel):
     username: Optional[str] = None
     email: Optional[str] = None
     password: str
+
+
+class BootstrapSuperAdminRequest(BaseModel):
+    email: str
+    password: str
+    name: Optional[str] = None
 
 
 class DemoLoginRequest(BaseModel):
@@ -117,6 +126,45 @@ def _issue_tokens(user: dict) -> tuple[str, str, str, datetime]:
     return access_token, refresh_token, refresh_payload["jti"], datetime.fromtimestamp(
         refresh_payload["exp"], timezone.utc
     )
+
+
+@router.post("/bootstrap-super-admin")
+async def bootstrap_super_admin(payload: BootstrapSuperAdminRequest, request: Request):
+    """One-time creation of the private Super Admin account.
+
+    Disabled (404) unless SUPER_ADMIN_BOOTSTRAP_TOKEN is set; requires that
+    token in X-Bootstrap-Token, an email already listed in SUPER_ADMIN_EMAILS,
+    and refuses if the account exists. The password is hashed with the normal
+    scheme and never logged. Remove the token afterwards to disable the route.
+    """
+    token = settings.super_admin_bootstrap_token or ""
+    if len(token) < 32:
+        raise HTTPException(status_code=404, detail="Not found")
+    presented = request.headers.get("X-Bootstrap-Token", "")
+    if not hmac.compare_digest(presented.encode(), token.encode()):
+        raise HTTPException(status_code=403, detail="Forbidden")
+    email = _normalize_email(payload.email)
+    allowed = {e.strip().lower() for e in (settings.super_admin_emails or [])}
+    if "@" not in email or email not in allowed:
+        raise HTTPException(status_code=403, detail="Forbidden")
+    if len(payload.password) < 12 or len(payload.password) > 128:
+        raise HTTPException(status_code=422, detail="Password must be 12-128 characters")
+    db = SessionLocal()
+    try:
+        if db.query(User).filter(User.email == email).first():
+            raise HTTPException(status_code=409, detail="Account already exists")
+        db.add(User(
+            id=email, username=email, email=email,
+            hashed_password=get_password_hash(payload.password),
+            full_name=(payload.name or "Super Admin").strip()[:80] or "Super Admin",
+            role="admin", tenant_id=settings.demo_tenant_id, department="General",
+            is_active=True, is_public_demo=False,
+        ))
+        db.commit()
+    finally:
+        db.close()
+    logger.warning("SUPER_ADMIN_BOOTSTRAPPED")
+    return {"created": True}
 
 
 @router.post("/login")

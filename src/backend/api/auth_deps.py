@@ -47,7 +47,7 @@ def resolve_active_user(subject: str) -> Dict[str, Any]:
             logger.error("User %s has incomplete authorization state", subject)
             raise _unauthorized("User account is unavailable")
         role = user.role.lower()
-        return {
+        info = {
             "id": user.id,
             "email": user.email,
             "name": user.full_name or "User",
@@ -65,6 +65,10 @@ def resolve_active_user(subject: str) -> Dict[str, Any]:
                 "admin" if role == "admin" else "none"
             ),
         }
+        # Display hint for the UI; every protected route re-checks server-side.
+        from src.backend.services.demo_usage import is_super_admin
+        info["is_super_admin"] = is_super_admin(info)
+        return info
     finally:
         db.close()
 
